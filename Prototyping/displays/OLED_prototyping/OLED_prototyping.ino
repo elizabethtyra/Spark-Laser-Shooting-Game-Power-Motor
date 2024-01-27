@@ -4,8 +4,8 @@
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
-#define NUM_BULLETS 10
-#define BUTTON_PIN 2
+#define NUM_BULLETS 200
+#define BUTTON_PIN 4
 
 // declare an SSD1306 display object connected to I2C
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -46,10 +46,12 @@ void loop() {
     oled.println(bulletCount); // text to display
     oled.display();
     
-    if(digitalRead(BUTTON_PIN)) {
-      delay(500);
-      bulletCount--;
-    }
+    // if(digitalRead(BUTTON_PIN)) {
+    //   delay(500);
+    //   bulletCount--;
+    // }      
+    delay(100);
+    bulletCount--;
     oled.clearDisplay(); //remember to clear screen
 
   }
