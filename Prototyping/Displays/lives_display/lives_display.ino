@@ -25,7 +25,7 @@ static const uint8_t PROGMEM
      B00011000,
      
     
-     },
+     };
  
 
 void loop() {
