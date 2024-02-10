@@ -1,16 +1,19 @@
 #define SENSOR1_PIN 2
-// #define SENSOR2_PIN 3
+#define SENSOR2_PIN 3
 // #define SENSOR3_PIN 18
 // #define SENSOR4_PIN 19
 // #define SENSOR5_PIN 20
 // #define SENSOR6_PIN 21
 #define NUM_SENSORS 6
 #define COOLDOWN 7000
+#define GAME_TIME 120000
 
 
 
 int playerScore = 0;
+int playerLives = 3;
 unsigned long lastHit[6] = {0};
+unsigned long startTime = 0;
 
 void processHit(const char* sensor, unsigned long* lastTime) {
     if (millis() - *(lastTime) > COOLDOWN) {
@@ -32,10 +35,10 @@ void printSensorState(int sensorPin) {
       processHit("Sensor 1", &lastHit[0]);
       break;
     }
-    // case SENSOR2_PIN: {
-    //   processHit("Sensor 2", &lastHit[1]);
-    //   break;
-    // }
+    case SENSOR2_PIN: {
+      processHit("Sensor 2", &lastHit[1]);
+      break;
+    }
     // case SENSOR3_PIN: {
     //   processHit("Sensor 3", &lastHit[2]);
     //   break;
@@ -57,11 +60,18 @@ void printSensorState(int sensorPin) {
   }
 }
 
+void gameOver() {
+    Serial.println("Game Over");
+    Serial.print("Player Score: ");
+    Serial.print(playerScore);
+    while(1);
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600); // initialize how many bits/s get communicated to the Serial monitor
   pinMode(SENSOR1_PIN, INPUT);
-  // pinMode(SENSOR2_PIN, INPUT);
+  pinMode(SENSOR2_PIN, INPUT);
   // pinMode(SENSOR3_PIN, INPUT);
   // pinMode(SENSOR4_PIN, INPUT);
   // pinMode(SENSOR5_PIN, INPUT);
@@ -74,11 +84,19 @@ void setup() {
   // attachInterrupt(digitalPinToInterrupt(SENSOR6_PIN), []{ printSensorState(SENSOR6_PIN); }, RISING);
   // Testing laser
   digitalWrite(7, HIGH);
+  startTime = millis();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   if (digitalRead(SENSOR1_PIN)) {
     printSensorState(SENSOR1_PIN);
+  }
+  else if (digitalRead(SENSOR2_PIN)) {
+    printSensorState(SENSOR2_PIN);
+  }
+
+  if((millis() - startTime >= GAME_TIME) || (playerLives == 0)) {
+    gameOver();
   }
 }
