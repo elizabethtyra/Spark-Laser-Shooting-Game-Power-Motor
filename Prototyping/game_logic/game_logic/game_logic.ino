@@ -32,7 +32,7 @@ void lowerZombie(int zombieNum) {
   Serial.println("Lowering zombie ");
   Serial.print(zombieNum);
   for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-    pwm.setPWM(servoNumber + zombieNum - 1, 0, pulselen);
+    pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
   }
 }
 
@@ -40,13 +40,13 @@ void raiseZombie(int zombieNum) {
   Serial.println("Raising zombie ");
   Serial.print(zombieNum);
   for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
-    pwm.setPWM(servoNumber + zombieNum - 1, 0, pulselen);
+    pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
   }
 }
 
 
 void processHit(const char* sensor, unsigned long* lastTime, int zombieNum) {
-    if (millis() - *(lastTime) > COOLDOWN  && zombieState[i] == ZOMBIE_UP) {
+    if (millis() - *(lastTime) > COOLDOWN  && zombieState[zombieNum-1] == ZOMBIE_UP) {
       *(lastTime) = millis();
       playerScore+=10;
       Serial.print(sensor);
@@ -152,7 +152,7 @@ void loop() {
   }
 
   for(int i = 0; i < NUM_SENSORS; i++) {
-    if(millis() - lastTime[i] > COOLDOWN && zombieState[i] == ZOMBIE_DOWN) {
+    if(millis() - lastHit[i] > COOLDOWN && zombieState[i] == ZOMBIE_DOWN) {
       raiseZombie(i+1);
       zombieState[i] = ZOMBIE_UP;
     }
