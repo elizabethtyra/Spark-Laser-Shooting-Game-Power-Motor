@@ -21,7 +21,7 @@
 int playerScore = 0;
 int playerLives = 3;
 unsigned long lastHit[NUM_SENSORS] = {0};
-unsigned long zombieState[NUM_SENSORS] = {1, 1, 1, 1, 1, 1};
+unsigned long zombieState[NUM_SENSORS] = {ZOMBIE_UP, ZOMBIE_UP, ZOMBIE_UP, ZOMBIE_UP, ZOMBIE_UP, ZOMBIE_UP};
 unsigned long startTime = 0;
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 // our servo # counter
@@ -31,6 +31,7 @@ uint8_t servonum = 12;
 void lowerZombie(int zombieNum) {
   Serial.println("Lowering zombie ");
   Serial.print(zombieNum);
+  Serial.println();
   for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
     pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
   }
@@ -39,6 +40,7 @@ void lowerZombie(int zombieNum) {
 void raiseZombie(int zombieNum) {
   Serial.println("Raising zombie ");
   Serial.print(zombieNum);
+  Serial.println();
   for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
     pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
   }
@@ -49,10 +51,12 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum) {
     if (millis() - *(lastTime) > COOLDOWN  && zombieState[zombieNum-1] == ZOMBIE_UP) {
       *(lastTime) = millis();
       playerScore+=10;
+      Serial.println();
       Serial.print(sensor);
       Serial.println(" HIT");
       Serial.println("Player Score: ");
       Serial.print(playerScore);
+      Serial.println("");
       zombieState[zombieNum-1] = ZOMBIE_DOWN;
       lowerZombie(zombieNum);
     }
@@ -155,6 +159,9 @@ void loop() {
     if(millis() - lastHit[i] > COOLDOWN && zombieState[i] == ZOMBIE_DOWN) {
       raiseZombie(i+1);
       zombieState[i] = ZOMBIE_UP;
+      Serial.println("Off cooldown: ");
+      Serial.print(i+1);
+      Serial.println("");
     }
   }
 
