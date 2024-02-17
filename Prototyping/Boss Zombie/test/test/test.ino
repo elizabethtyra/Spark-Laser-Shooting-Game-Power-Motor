@@ -33,6 +33,7 @@ int ZOMBIE_STATE = 1; // 1-moving right/clockwise, 0-moving left/CCW, 2-not walk
 int pos_servo1 = 0; // Zombie is turned to the right (walking right)
 int health = 3; //health status
 
+bool GAME_OVER = false;
 
 void setup()
 {
@@ -78,16 +79,16 @@ void loop()
     }
 
     // // turn around automatically if reaches the end
-    // if (curr_pos == stepsPerRevolution){
-    //   digitalWrite(dirPin, LOW);
-    //   ZOMBIE_STATE = 0;
-    //   servo1_boss_zombie.write(180);
-    // }
+    //  if (curr_pos == stepsPerRevolution){
+    //    digitalWrite(dirPin, LOW);
+    //    ZOMBIE_STATE = 0;
+    //    servo1_boss_zombie.write(180);
+    //  }
 
     //check if zombie has reached the end !!
   int detected1 = digitalRead(DETECT1); // read right limit switch !!
  
-` // Serial.println(detected1);
+  //Serial.println(detected1);
   //Serial.println(detected2);
   if (detected1 == 1) // if zombie reaches right side, turn to go to the left !!
   {
@@ -118,11 +119,11 @@ void loop()
     }
 
     // // turn around automatically if reaches the end
-    // if (curr_pos == 0){
-    //   digitalWrite(dirPin, HIGH);
-    //   ZOMBIE_STATE = 1;
-    //   servo1_boss_zombie.write(0);
-    // }
+    //  if (curr_pos == 0){
+    //    digitalWrite(dirPin, HIGH);
+    //    ZOMBIE_STATE = 1;
+    //    servo1_boss_zombie.write(0);
+    //  }
 
   int detected2 = digitalRead(DETECT2); // read left limit switch !!
   if(detected2 == 1) // if zombie reaches left side, turn to go to the right !!
@@ -130,7 +131,7 @@ void loop()
     health -= 1;
     digitalWrite(dirPin, HIGH);
     ZOMBIE_STATE = 1;
-    servo1_boss_zombie.write(180);
+    servo1_boss_zombie.write(0); 
     // add code for sunflower to go down, and then come up again
   }
 
@@ -138,7 +139,7 @@ void loop()
 
   if(health == 0)
   {
-    // game over !!
+    GAME_OVER = true;
   }
 
 }
