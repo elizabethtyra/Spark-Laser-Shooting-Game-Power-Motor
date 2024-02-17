@@ -12,7 +12,7 @@ void setup() {
 }
 
 static const uint8_t PROGMEM
-  smile_bmp[] =
+  heart_empty[] =
    {
     
      B00000000,
@@ -23,14 +23,26 @@ static const uint8_t PROGMEM
      B01000010,
      B00100100,
      B00011000,
-     
     
+     },
+
+     heart_fill[] =
+     {
+      B00000000,
+      B01100110,
+     B11111111,
+     B11111111,
+     B11111111,
+     B01111110,
+     B00111100,
+     B00011000,
      };
  
 
 void loop() {
   matrix.clear();
-  matrix.drawBitmap(0, 0, smile_bmp, 8, 8, LED_RED);
+  matrix.drawBitmap(0, 0, heart_empty, 8, 8, LED_RED);
+ // matrix.drawBitmap(0, 0, heart_fill, 8, 8, LED_RED);
   matrix.writeDisplay();
   delay(500);
    matrix.setRotation(0);
