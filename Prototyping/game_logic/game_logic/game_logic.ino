@@ -2,6 +2,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
 
 #define SENSOR1_PIN 2
 #define SENSOR2_PIN 3
@@ -27,7 +28,9 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
-int playerScore = 0;
+
+
+int playerScore = 0; 
 int playerLives = 3;
 unsigned long lastHit[NUM_SENSORS] = {0};
 unsigned long zombieState[NUM_SENSORS] = {1, 1, 1, 1, 1, 1};
@@ -42,6 +45,11 @@ unsigned int bulletCount;
 // declare an SSD1306 display object connected to I2C
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 //oled is the name of the OLED object we just constructed
+
+//globals for leaderboard
+int topHighScore;
+char initial1;
+char initial2;
 
 
 void lowerZombie(int zombieNum) {
@@ -111,9 +119,20 @@ void printSensorState(int sensorPin) {
 }
 
 void gameOver() {
+    if(playerScore > topHighScore) {
+      topHighScore = playerScore; // update highest score for leaderboard --> need to write this to memory later
+      
+      //write to memory
+      EEPROM.update(0, initial1);
+      EEPROM.update(1, initial2);
+      EEPROM.put(3, topHighScore);
+    }
+
     Serial.println("Game Over");
     Serial.print("Player Score: ");
     Serial.print(playerScore);
+    Serial.print("Top Score: ");
+    Serial.print(topHighScore);
     while(1);
 }
 
@@ -154,7 +173,11 @@ void setup() {
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
-
+  
+  initial1 = 'a'; // testing
+  initialb = 'b';
+  EEPROM.update(3, 0);
+  topHighScore = 0;
   delay(10);
   startTime = millis();
     //digitalWrite(8, HIGH); // comment out when real laser is used
