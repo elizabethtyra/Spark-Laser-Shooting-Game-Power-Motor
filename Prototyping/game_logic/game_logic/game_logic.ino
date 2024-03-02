@@ -157,18 +157,7 @@ void setup() {
 
   delay(10);
   startTime = millis();
-
-    bulletCount = BULLETS;
-    pinMode(BUTTON_PIN, INPUT);
-    Serial.begin(9600);
-      // initialize OLED display with address 0x3C for 128x64
-    if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-      Serial.println(F("SSD1306 allocation failed"));
-      while (true);
-    }
     //digitalWrite(8, HIGH); // comment out when real laser is used
-    pinMode(RELOAD_PIN, INPUT);
-    displayBullets(200);
 }
 
 void loop() {
@@ -187,11 +176,6 @@ void loop() {
     }
   }
 
-  if(digitalRead(RELOAD_PIN)) {
-    reload();
-  }
-
-  checkBulletCount();
 
   if((millis() - startTime >= GAME_TIME) || (playerLives == 0)) {
     gameOver();
