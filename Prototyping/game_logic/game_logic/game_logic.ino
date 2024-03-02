@@ -46,7 +46,7 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 void lowerZombie(int zombieNum) {
   Serial.println("Lowering zombie ");
-  Serial.print(zombieNum);
+  Serial.println(zombieNum);
   for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
     pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
   }
@@ -54,7 +54,7 @@ void lowerZombie(int zombieNum) {
 
 void raiseZombie(int zombieNum) {
   Serial.println("Raising zombie ");
-  Serial.print(zombieNum);
+  Serial.println(zombieNum);
   for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
     pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
   }
@@ -68,7 +68,7 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum) {
       Serial.print(sensor);
       Serial.println(" HIT");
       Serial.println("Player Score: ");
-      Serial.print(playerScore);
+      Serial.println(playerScore);
       zombieState[zombieNum-1] = ZOMBIE_DOWN;
       lowerZombie(zombieNum);
     }
@@ -157,6 +157,11 @@ void setup() {
 
   delay(10);
   startTime = millis();
+  Serial.println("Raising all zombies");
+  for(int i = 0; i < NUM_SENSORS; i++) {
+      raiseZombie(i+1);
+      zombieState[i] = ZOMBIE_UP;
+  }
     //digitalWrite(8, HIGH); // comment out when real laser is used
 }
 
@@ -178,6 +183,12 @@ void loop() {
 
 
   if((millis() - startTime >= GAME_TIME) || (playerLives == 0)) {
+    for(int i = 0; i < NUM_SENSORS; i++) {
+      if(zombieState[i] == ZOMBIE_DOWN) {
+        raiseZombie(i+1);
+        zombieState[i] = ZOMBIE_UP;
+      }
+    }
     gameOver();
   }
 }
