@@ -2,7 +2,11 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+
+#include <EEPROM.h>
+
 #include <Servo.h>
+
 
 #define SENSOR1_PIN 2
 #define SENSOR2_PIN 3
@@ -28,10 +32,12 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
+
 #define DETECT1 8 // limit switch on right side
 #define DETECT2 9 // limit switch on left side
 
 int playerScore = 0;
+
 int playerLives = 3;
 unsigned long lastHit[NUM_SENSORS] = {0};
 unsigned long zombieState[NUM_SENSORS] = {1, 1, 1, 1, 1, 1};
@@ -46,6 +52,13 @@ unsigned int bulletCount;
 // declare an SSD1306 display object connected to I2C
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 //oled is the name of the OLED object we just constructed
+
+
+//globals for leaderboard
+int topHighScore;
+char initial1;
+char initial2;
+
 
 // BOSS ZOMBIE AND ALL PARTS - 2 LDRS, 1 LED, 1 Servo
 const int STATUS_LED_PIN = 11;     // Status LED pin
@@ -64,6 +77,7 @@ int curr_pos = stepsPerRevolution/2; // assume starting position is right in the
 int lightThres = 200; // Photoresistor reading values
 int ZOMBIE_STATE = 1; // 1-moving right/clockwise, 0-moving left/CCW, 2-not walking
 int pos_servo1 = 0; // Zombie is turned to the right (walking right)
+
 
 void lowerZombie(int zombieNum) {
   Serial.println("Lowering zombie ");
@@ -132,9 +146,20 @@ void printSensorState(int sensorPin) {
 }
 
 void gameOver() {
+    if(playerScore > topHighScore) {
+      topHighScore = playerScore; // update highest score for leaderboard --> need to write this to memory later
+      
+      //write to memory
+      EEPROM.update(0, initial1);
+      EEPROM.update(1, initial2);
+      EEPROM.put(3, topHighScore);
+    }
+
     Serial.println("Game Over");
     Serial.print("Player Score: ");
     Serial.print(playerScore);
+    Serial.print("Top Score: ");
+    Serial.print(topHighScore);
     while(1);
 }
 
@@ -175,7 +200,11 @@ void setup() {
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
-
+  
+  initial1 = 'a'; // testing
+  initialb = 'b';
+  EEPROM.update(3, 0);
+  topHighScore = 0;
   delay(10);
   startTime = millis();
   Serial.println("Raising all zombies");
