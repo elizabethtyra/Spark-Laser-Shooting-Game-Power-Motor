@@ -54,9 +54,13 @@ Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 //globals for leaderboard
 int topHighScore;
-char initial1;
-char initial2;
-
+char firstNameInitial;
+char lastNameInitial;
+uint8_t topScoreLowByte;
+uint8_t topScoreHighByte;
+// function prototype declarations
+void writeTopScoreToEEPROM();
+void readEEPROMTopScore();
 
 // BOSS ZOMBIE AND ALL PARTS - 2 LDRS, 1 LED, 1 Servo
 const int STATUS_LED_PIN = 11;  // Status LED pin
@@ -147,11 +151,8 @@ void printSensorState(int sensorPin) {
 void gameOver() {
   if (playerScore > topHighScore) {
     topHighScore = playerScore;  // update highest score for leaderboard --> need to write this to memory later
-
     //write to memory
-    EEPROM.update(0, initial1);
-    EEPROM.update(1, initial2);
-    EEPROM.put(3, topHighScore);
+    writeTopScoreToEEPROM();
   }
 
   Serial.println("Game Over");
@@ -161,6 +162,27 @@ void gameOver() {
   Serial.print(topHighScore);
   while (1)
     ;
+}
+//read top player high score from EEPROM
+void readEEPROMTopScore() {
+    //read from EEPROM
+  firstNameInitial = EEPROM.read(0);
+  lastNameInitial = EEPROM.read(1);
+  topScoreLowByte = EEPROM.read(2);
+  topScoreHighByte = EEPROM.read(3);
+  topHighScore = topScoreLowByte + (topScoreHighByte << 8);
+
+}
+void writeTopScoreToEEPROM() {
+
+  EEPROM.update(0, firstNameInitial);
+  EEPROM.update(1, lastNameInitial);
+
+  // Put topHighScore (16 bits?) into two 8-bit variables and then store into memory
+  topScoreLowByte = (uint8_t)topHighScore;
+  topScoreHighByte = (uint8_t)(topHighScore >> 8);
+  EEPROM.put(2, topScoreLowByte);
+  EEPROM.put(3, topScoreHighByte);
 }
 
 // You can use this function if you'd like to set the pulse length in seconds
@@ -203,10 +225,13 @@ void setup() {
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
 
-  initial1 = 'a';  // testing
-  initial2 = 'b';
-  EEPROM.update(3, 0);
-  topHighScore = 0;
+  firstNameInitial = 'a';  // testing EEPROM
+  lastNameInitial = 'b';
+  // for testing: writing above intials to EEPROM to test if we can read from it after
+  writeTopScoreToEEPROM();
+
+  readEEPROMTopScore();
+ 
   delay(10);
   startTime = millis();
   Serial.println("Raising all zombies");
