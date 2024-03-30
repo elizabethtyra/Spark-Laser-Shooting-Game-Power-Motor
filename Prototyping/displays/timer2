@@ -1,0 +1,61 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_LEDBackpack.h>
+
+Adafruit_7segment matrix0 = Adafruit_7segment();
+Adafruit_7segment matrix1 = Adafruit_7segment();
+ 
+volatile uint16_t count;
+volatile int counter = 0;
+
+// interrupt service routine for timer1
+ISR(TIMER2_COMPA_vect) {
+  sei();  
+  if (counter < 10)
+  {
+    counter++;
+  }
+  else{
+    count++;
+  update_timer();
+  counter = 0;
+  }
+}
+
+void update_timer() {
+  Serial.println(count);
+  matrix1.writeDigitNum(0, (count / 1000));
+  matrix1.writeDigitNum(1, (count / 100) % 10);
+  matrix1.writeDigitNum(3, (count / 10) % 10, true);
+  matrix1.writeDigitNum(4, count % 10);
+ 
+  matrix1.writeDisplay();
+}
+
+void setup() {
+  Serial.begin(115200);
+  
+  cli();
+  TCCR0B = 0;
+  TCCR2A = 0;
+  OCR2A = 0;
+  TCNT2  = 0;
+  TCCR2B = 0;
+  TCCR2A = 1 << WGM21;
+  OCR2A = 400;
+  TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);
+  TIMSK2 = (1 << OCIE2A);
+  sei();
+  Serial.println("TIMER1 Setup Finished.");
+  
+ // matrix0.begin(0x70);
+  matrix1.begin(0x77);
+  Serial.println("Matrix Setup Finished.");
+  count = 0;
+}
+
+void loop() {
+  
+}
