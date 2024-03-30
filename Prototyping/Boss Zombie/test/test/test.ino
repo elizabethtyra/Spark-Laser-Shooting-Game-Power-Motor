@@ -20,8 +20,8 @@
 const int STATUS_LED_PIN = 11;  // Status LED pin
 const int SENSOR_PIN = A1;      // Photoresistor pin
 const int SENSOR_PIN2 = A0;     // Photoresistor pin the other one
-const int SERVO_PIN = 7;
-Servo servo1_boss_zombie;  // create servo object
+// const int SERVO_PIN = 7;
+// Servo servo1_boss_zombie;  // create servo object
 
 // STEPPER - moves side to side
 const int stepPin = 2;
@@ -49,7 +49,7 @@ void setup() {
 
   // Initialise BOSS ZOMBIE
   pinMode(STATUS_LED_PIN, OUTPUT);
-  servo1_boss_zombie.attach(SERVO_PIN);
+  // servo1_boss_zombie.attach(SERVO_PIN);
 
   // set the zombie into walking to the right mode
   digitalWrite(STATUS_LED_PIN, LOW);  // will be high when it's eating
@@ -85,7 +85,7 @@ void loop() {
       digitalWrite(dirPin, LOW);
       digitalWrite(dirPin2, LOW);
       ZOMBIE_STATE = 0;
-      servo1_boss_zombie.write(180);
+      // servo1_boss_zombie.write(180);
     }
 
     // // turn around automatically if reaches the end
@@ -106,7 +106,7 @@ void loop() {
       digitalWrite(dirPin, LOW);
       digitalWrite(dirPin2, LOW);
       ZOMBIE_STATE = 0;
-      servo1_boss_zombie.write(180);
+      // servo1_boss_zombie.write(180);
       // add code for sunflower to go down, and then come up again
     }
   }
@@ -131,12 +131,12 @@ void loop() {
       digitalWrite(dirPin2, HIGH);
 
       ZOMBIE_STATE = 1;
-      servo1_boss_zombie.write(0);
+      // servo1_boss_zombie.write(0);
     }
 
     // // turn around automatically if reaches the end
     //  if (curr_pos == 0){
-    //    digitalWrite(dirPin, HIGH);
+    //    digitalWrite(dirPin, HIGH);8
     //    ZOMBIE_STATE = 1;
     //    servo1_boss_zombie.write(0);
     //  }
@@ -148,7 +148,7 @@ void loop() {
       digitalWrite(dirPin, HIGH);
       digitalWrite(dirPin2, HIGH);
       ZOMBIE_STATE = 1;
-      servo1_boss_zombie.write(0);
+      // servo1_boss_zombie.write(0);
       // add code for sunflower to go down, and then come up again
     }
   }
