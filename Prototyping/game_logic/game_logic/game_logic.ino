@@ -6,14 +6,20 @@
 #include <Servo.h>
 
 
-#define SENSOR1_PIN 2
-#define SENSOR2_PIN 3
-// #define SENSOR3_PIN 18
-// #define SENSOR4_PIN 19
+#define SENSOR0_PIN 19
+#define SENSOR1_PIN 20
+#define SENSOR2_PIN 21
+#define SENSOR3_PIN 22
+#define SENSORBOSS_PIN 23
+#define SENSORCAR_PIN 24
 // #define SENSOR5_PIN 20
 // #define SENSOR6_PIN 21
+
+// 4 Stationary + 2 Moving
 #define NUM_SENSORS 6
+#define STATIONARY_ZOMBIES 4
 #define COOLDOWN 7000
+#define MOVING_COOLDOWN 3000
 #define GAME_TIME 120000
 #define SERVOMIN 150   // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX 600   // This is the 'maximum' pulse length count (out of 4096)
@@ -35,11 +41,15 @@
 #define DETECT2 9  // limit switch on left side
 
 int playerScore = 0;
-
 int playerLives = 3;
 unsigned long lastHit[NUM_SENSORS] = { 0 };
+
+// Stationary: 1 = UP, 0 = DOWN
+// Moving: 1 = RIGHT, 0 = LEFT
 unsigned long zombieState[NUM_SENSORS] = { 1, 1, 1, 1, 1, 1 };
 unsigned long startTime = 0;
+// int bossZombieState = 1;
+// int carZombieState = 1;
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 // our servo # counter
 uint8_t servonum = 12;
@@ -62,30 +72,32 @@ uint8_t topScoreHighByte;
 void writeTopScoreToEEPROM();
 void readEEPROMTopScore();
 
-// BOSS ZOMBIE AND ALL PARTS - 2 LDRS, 1 LED, 1 Servo
-const int STATUS_LED_PIN = 11;  // Status LED pin
-const int SENSOR_PIN = A1;      // Photoresistor pin
-const int SENSOR_PIN2 = A0;     // Photoresistor pin the other one
-const int SERVO_PIN = 7;
-Servo servo1_boss_zombie;  // create servo object
+/**************** STEPPER PARAMETERS ***************/
+// Define stuff for both stepper motors
+const int stepsPerRevolution = 1000; 
+const int stopDelay = 2000; // How long to wait once reached the end (to handle lives and stuff)
+const int stepDelay_high_low = 2500; // Delay for clockwise rotation
+const int stepDelay_low_high = 2500; // Delay for counterclockwise rotation
+unsigned long delayNum = 2500;
 
-// STEPPER - moves side to side
-const int stepPin = 3;
-const int dirPin = 2;
-const int stepsPerRevolution = 2000;    // we tried 1000 and it was half of the belt
-int curr_pos = stepsPerRevolution / 2;  // assume starting position is right in the middle
+// Define stuff for only STEPPER1 (Boss Zombie)
+const int stepPinBoss = 4;
+const int dirPinBoss = 5;
+const int limitSwitchBoss_1 = 6; // Limit switch for stepper 1 in one direction
+const int limitSwitchBoss_2 = 7; // Limit switch for stepper 1 in the other direction
 
-// Setting up objects and values
-int lightThres = 200;  // Photoresistor reading values
-int ZOMBIE_STATE = 1;  // 1-moving right/clockwise, 0-moving left/CCW, 2-not walking
-int pos_servo1 = 0;    // Zombie is turned to the right (walking right)
+// Define stuff for only STEPPER2 (Car Zombie)
+const int stepPinCar = 2;
+const int dirPinCar = 3;
+const int limitSwitchCar_1 = 8; // Limit switch for stepper 2 in one direction
+const int limitSwitchCar_2 = 9; // Limit switch for stepper 2 in the other direction
 
 
 void lowerZombie(int zombieNum) {
   Serial.println("Lowering zombie ");
   Serial.println(zombieNum);
   for (uint16_t pulselen = SERVOMIN; pulselen < SERVOMAX; pulselen++) {
-    pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
+    pwm.setPWM(servonum + zombieNum, 0, pulselen);
   }
 }
 
@@ -93,56 +105,88 @@ void raiseZombie(int zombieNum) {
   Serial.println("Raising zombie ");
   Serial.println(zombieNum);
   for (uint16_t pulselen = SERVOMAX; pulselen > SERVOMIN; pulselen--) {
-    pwm.setPWM(servonum + zombieNum - 1, 0, pulselen);
+    pwm.setPWM(servonum + zombieNum, 0, pulselen);
   }
 }
 
 
-void processHit(const char* sensor, unsigned long* lastTime, int zombieNum) {
-  if (millis() - *(lastTime) > COOLDOWN && zombieState[zombieNum - 1] == ZOMBIE_UP) {
-    *(lastTime) = millis();
-    playerScore += 10;
-    Serial.print(sensor);
-    Serial.println(" HIT");
-    Serial.println("Player Score: ");
-    Serial.println(playerScore);
-    zombieState[zombieNum - 1] = ZOMBIE_DOWN;
-    lowerZombie(zombieNum);
-  } else {
+void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool moving) {
+
+  // Process stationary zombies by updating score + zombie state
+  if (!moving) {
+    if (millis() - *(lastTime) > COOLDOWN && zombieState[zombieNum] == ZOMBIE_UP) {
+      *(lastTime) = millis();
+      playerScore += 10;
+      Serial.print(sensor);
+      Serial.println(" HIT");
+      Serial.println("Player Score: ");
+      Serial.println(playerScore);
+      zombieState[zombieNum] = ZOMBIE_DOWN;
+      lowerZombie(zombieNum);
+    } 
+    else {
     // Serial.print(sensor);
     // Serial.println(" on COOLDOWN");
+    }
   }
+
+  // Process moving zombies by changing direction in addition to score
+  else if (moving) {
+    if (millis() - *(lastTime) > MOVING_COOLDOWN) {
+      *(lastTime) = millis();
+      playerScore += 10;
+      Serial.print(sensor);
+      Serial.println(" HIT");
+      Serial.println("Player Score: ");
+      Serial.println(playerScore);
+      // Toggle direction
+      zombieState[zombieNum] = 1 - zombieState[zombieNum];
+      Serial.println("Direction switched");
+      if (zombieNum == 4) {
+        digitalWrite(dirPinBoss, zombieState[zombieNum]);  
+      }
+      else if (zombieNum == 5) {
+        digitalWrite(dirPinCar, zombieState[zombieNum]);  
+      }
+    } 
+    else {
+    // Serial.print(sensor);
+    // Serial.println(" on COOLDOWN");
+    }
+  }
+
   return;
 }
 
+
 void printSensorState(int sensorPin) {
   switch (sensorPin) {
+    case SENSOR0_PIN:
+      {
+        processHit("Sensor 0", &lastHit[0], 0, false);
+        break;
+      }
     case SENSOR1_PIN:
       {
-        processHit("Sensor 1", &lastHit[0], 1);
+        processHit("Sensor 1", &lastHit[1], 1, false);
         break;
       }
-    case SENSOR2_PIN:
-      {
-        processHit("Sensor 2", &lastHit[1], 2);
-        break;
-      }
-    // case SENSOR3_PIN: {
-    //   processHit("Sensor 3", &lastHit[2], 3);
-    //   break;
-    // }
-    // case SENSOR4_PIN: {
-    //   processHit("Sensor 4", &lastHit[3], 4);
-    //   break;
-    // }
-    // case SENSOR5_PIN: {
-    //   processHit("Sensor 5", &lastHit[4], 5);
-    //   break;
-    // }
-    // case SENSOR6_PIN: {
-    //   processHit("Sensor 6", &lastHit[5], 6);
-    //   break;
-    // }
+    case SENSOR2_PIN: {
+      processHit("Sensor 2", &lastHit[2], 2, false);
+      break;
+    }
+    case SENSOR3_PIN: {
+      processHit("Sensor 3", &lastHit[3], 3, false);
+      break;
+    }
+    case SENSORBOSS_PIN: {
+      processHit("Sensor Boss", &lastHit[4], 4, true);
+      break;
+    }
+    case SENSORCAR_PIN: {
+      processHit("Sensor Car", &lastHit[5], 5, true);
+      break;
+    }
     default:
       break;
   }
@@ -207,10 +251,42 @@ void setServoPulse(uint8_t n, double pulse) {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);  // initialize how many bits/s get communicated to the Serial monitor
+
+  /**************** SENSOR PINS ***************/
+  pinMode(SENSOR0_PIN, INPUT);
   pinMode(SENSOR1_PIN, INPUT);
   pinMode(SENSOR2_PIN, INPUT);
-  // pinMode(SENSOR3_PIN, INPUT);
-  // pinMode(SENSOR4_PIN, INPUT);
+  pinMode(SENSOR3_PIN, INPUT);
+  pinMode(SENSORBOSS_PIN, INPUT);
+  pinMode(SENSORCAR_PIN, INPUT);
+
+
+
+  /**************** MOVING ZOMBIES ***************/
+
+  // No idea why the switches are INPUT_PULLUP (which means 1 or HIGH by default when the switch is OPEN) but it seems to work when we tested it
+  // If for some reason this stops working in the future, change the if statements under 'BOSS ZOMBIE LIMIT SWITCHES' and 'CAR ZOMBIE LIMIT SWITCHES' in 'loop()' to '== LOW'
+  // Switches are connected like so:
+  // GND --- | | --- PIN
+  //          O
+  //     --- | | ---
+
+
+  // STEPPER1 SET setup
+  pinMode(limitSwitchBoss_1, INPUT_PULLUP);
+  pinMode(limitSwitchBoss_2, INPUT_PULLUP);
+  pinMode(stepPinBoss, OUTPUT);
+	pinMode(dirPinBoss, OUTPUT);
+  digitalWrite(dirPinBoss, HIGH); // starts same direction
+
+  // STEPPER2 SET setup
+  pinMode(limitSwitchCar_1, INPUT_PULLUP);
+  pinMode(limitSwitchCar_2, INPUT_PULLUP);
+  pinMode(stepPinCar, OUTPUT);
+	pinMode(dirPinCar, OUTPUT);
+  digitalWrite(dirPinCar, HIGH); // starts same direction
+
+
   // pinMode(SENSOR5_PIN, INPUT);
   // pinMode(SENSOR6_PIN, INPUT);
   // attachInterrupt(digitalPinToInterrupt(SENSOR1_PIN), []{ printSensorState(SENSOR1_PIN); }, RISING);
@@ -219,8 +295,10 @@ void setup() {
   // attachInterrupt(digitalPinToInterrupt(SENSOR4_PIN), []{ printSensorState(SENSOR4_PIN); }, RISING);
   // attachInterrupt(digitalPinToInterrupt(SENSOR5_PIN), []{ printSensorState(SENSOR5_PIN); }, RISING);
   // attachInterrupt(digitalPinToInterrupt(SENSOR6_PIN), []{ printSensorState(SENSOR6_PIN); }, RISING);
-  // Testing laser
-  digitalWrite(7, HIGH);
+
+  // Testing laser - Uncomment below code if laser is connected to the same board as game logic for testing purposes
+  // digitalWrite(7, HIGH);
+
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
@@ -229,123 +307,130 @@ void setup() {
   lastNameInitial = 'b';
   // for testing: writing above intials to EEPROM to test if we can read from it after
   writeTopScoreToEEPROM();
-
   readEEPROMTopScore();
- 
   delay(10);
+
   startTime = millis();
-  Serial.println("Raising all zombies");
-  for (int i = 0; i < NUM_SENSORS; i++) {
-    raiseZombie(i + 1);
+  Serial.println("Raising all stationary zombies");
+
+  /**************** RESET STATIONARY ZOMBIES ***************/
+  for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
+    raiseZombie(i);
     zombieState[i] = ZOMBIE_UP;
   }
-  //digitalWrite(8, HIGH); // comment out when real laser is used
 
-  // Declare pins as Outputs (stepper)
-  pinMode(stepPin, OUTPUT);
-  pinMode(dirPin, OUTPUT);
 
-  // Initialise BOSS ZOMBIE
-  pinMode(STATUS_LED_PIN, OUTPUT);
-  servo1_boss_zombie.attach(SERVO_PIN);
+  // // Declare pins as Outputs (stepper)
+  // pinMode(stepPin, OUTPUT);
+  // pinMode(dirPin, OUTPUT);
+
+  // // Initialise BOSS ZOMBIE
+  // pinMode(STATUS_LED_PIN, OUTPUT);
+  // servo1_boss_zombie.attach(SERVO_PIN);
 
   // set the zombie into walking to the right mode
-  digitalWrite(STATUS_LED_PIN, LOW);  // will be high when it's eating
-  digitalWrite(dirPin, HIGH);         // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
+  // digitalWrite(STATUS_LED_PIN, LOW);  // will be high when it's eating
+  digitalWrite(dirPinBoss, HIGH);         // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
+  digitalWrite(dirPinCar, HIGH);         // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
 
-  // define input pins for limit switches
-  pinMode(DETECT1, INPUT);
-  pinMode(DETECT2, INPUT);
+
+  // // define input pins for limit switches
+  // pinMode(DETECT1, INPUT);
+  // pinMode(DETECT2, INPUT);
 }
 
 void loop() {
 
   /****************GAME END***************/
   if ((millis() - startTime >= GAME_TIME) || (playerLives == 0)) {
-    for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
       if (zombieState[i] == ZOMBIE_DOWN) {
-        raiseZombie(i + 1);
+        raiseZombie(i);
         zombieState[i] = ZOMBIE_UP;
       }
     }
     gameOver();
   }
 
-  /**************** DETECT STATIONARY ZOMBIES***************/
-  if (digitalRead(SENSOR1_PIN)) {
+  /**************** DETECT ZOMBIE HIT ***************/
+  if (digitalRead(SENSOR0_PIN)) {
+    printSensorState(SENSOR0_PIN);
+  }
+  else if (digitalRead(SENSOR1_PIN)) {
     printSensorState(SENSOR1_PIN);
   }
   else if (digitalRead(SENSOR2_PIN)) {
     printSensorState(SENSOR2_PIN);
   }
+  else if (digitalRead(SENSOR3_PIN)) {
+    printSensorState(SENSOR3_PIN);
+  }
+  else if (digitalRead(SENSORBOSS_PIN)) {
+    printSensorState(SENSORBOSS_PIN);
+  }
+  else if (digitalRead(SENSORCAR_PIN)) {
+    printSensorState(SENSORCAR_PIN);
+  }
+
 
   /****************RAISING STATIONARY ZOMBIES***************/
-  for (int i = 0; i < NUM_SENSORS; i++) {
+  for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
     if (millis() - lastHit[i] > COOLDOWN && zombieState[i] == ZOMBIE_DOWN) {
-      raiseZombie(i + 1);
+      raiseZombie(i);
       zombieState[i] = ZOMBIE_UP;
     }
   }
 
-  /****************BOSS ZOMBIE***************/
-  // to start the zombie will begin to walk in one direction, it takes one step
-  if (ZOMBIE_STATE == 1) {  // moving right
-    digitalWrite(STATUS_LED_PIN, LOW);
-    // to start the zombie will begin to walk in one direction, it takes one step
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(2000);
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(2000);
-    curr_pos = curr_pos + 1;
+  /**************** MOVING ZOMBIES ***************/
 
-    // check photo res1 too see if got hit on this side
-    int sensorValue = analogRead(SENSOR_PIN);
-    bool gotHit = (sensorValue > lightThres);
-    if (gotHit) {  // zombie now changes direction
-      digitalWrite(dirPin, LOW);
-      ZOMBIE_STATE = 0;
-      servo1_boss_zombie.write(180);
-    }
+  // Stepping one at a time. If this does not work, replace the entire code within the loop function with an extra for loop like so:
+  /*
+  void loop() {
 
-    //check if zombie has reached the end !!
-    int detected1 = digitalRead(DETECT1);  // read right limit switch !!
-
-    if (detected1 == 1)  // if zombie reaches right side, turn to go to the left !!
+    for(int x = 0; x < stepsPerRevolution; x++)
     {
-      playerLives -= 1;
-      digitalWrite(dirPin, LOW);
-      ZOMBIE_STATE = 0;
-      servo1_boss_zombie.write(180);
-      // add code for sunflower to go down, and then come up again
+
+        All the code in loop()
+
     }
+
+  
+  }
+  */
+
+  digitalWrite(stepPinBoss, HIGH);
+  digitalWrite(stepPinCar, HIGH);
+  delayMicroseconds(delayNum);
+
+  digitalWrite(stepPinBoss, LOW);
+  digitalWrite(stepPinCar, LOW);
+  delayMicroseconds(delayNum);
+
+
+  // BOSS ZOMBIE LIMIT SWITCHES
+  if (digitalRead(limitSwitchBoss_1) == HIGH) {
+    digitalWrite(dirPinBoss, HIGH);
+    playerLives--;
+    zombieState[4] = 1;  
+    delay(stopDelay);
+  }
+  if (digitalRead(limitSwitchBoss_2) == HIGH) {
+    digitalWrite(dirPinBoss, LOW);
+    playerLives--;
+    zombieState[4] = 0;  
+    delay(stopDelay); // wait for the zombie to do stuff -> call zombie function here
   }
 
-  if (ZOMBIE_STATE == 0) {  // moving left
-    digitalWrite(STATUS_LED_PIN, HIGH);
-    // to start the zombie will begin to walk in one direction, it takes one step
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(2000);  // longer delay -> walk slower
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(2000);
-    curr_pos = curr_pos - 1;
-
-    // check photo res2 too see if got hit on this side
-    int sensorValue = analogRead(SENSOR_PIN2);
-    bool gotHit = (sensorValue > lightThres);
-    if (gotHit) {  // zombie now changes direction
-      digitalWrite(dirPin, HIGH);
-      ZOMBIE_STATE = 1;
-      servo1_boss_zombie.write(0);
-    }
-
-    int detected2 = digitalRead(DETECT2);  // read left limit switch !!
-    if (detected2 == 1)                    // if zombie reaches left side, turn to go to the right !!
-    {
-      playerLives -= 1;
-      digitalWrite(dirPin, HIGH);
-      ZOMBIE_STATE = 1;
-      servo1_boss_zombie.write(0);
-      // add code for sunflower to go down, and then come up again
-    }
+  // CAR ZOMBIE LIMIT SWITCHES
+  if (digitalRead(limitSwitchCar_1) == HIGH) {
+    digitalWrite(dirPinCar, HIGH);
+    zombieState[5] = 1;  
+    delay(stopDelay); // wait for the zombie to do stuff -> call zombie function here
   }
+  if (digitalRead(limitSwitchCar_2) == HIGH) {
+    digitalWrite(dirPinCar, LOW);
+    zombieState[5] = 0;
+    delay(stopDelay); // wait for the zombie to do stuff -> call zombie function here
+  }
+
 }
