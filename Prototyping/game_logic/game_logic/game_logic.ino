@@ -1,9 +1,14 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
+#include <Adafruit_LEDBackpack.h>
 #include <Servo.h>
+#include <MD_MAX72xx.h>
+#include <SPI.h>
 
 
 #define SENSOR0_PIN 19
@@ -40,6 +45,20 @@
 #define DETECT1 8  // limit switch on right side
 #define DETECT2 9  // limit switch on left side
 
+// dot matrix lives displays
+#define HARDWARE_TYPE MD_MAX72XX::GENERIC_HW
+#define MAX_DEVICES 3
+
+//Hardware SPI pins for Arduino UNO, change for Arduino Mega 
+// CLK Pin  > 13 SCK
+// Data Pin > 11 MOSI
+#define CS_PIN    10
+
+MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+
+byte heart_fill[8] = {0x00, 0x66, 0xFF, 0xFF, 0xFF, 0x7E, 0x3C, 0x18};
+byte heart_empty[8] = {0x00, 0x66, 0x99, 0x81, 0x81, 0x42, 0x24, 0x18};
+
 int playerScore = 0;
 int playerLives = 3;
 unsigned long lastHit[NUM_SENSORS] = { 0 };
@@ -61,16 +80,59 @@ unsigned int bulletCount;
 Adafruit_SSD1306 oled(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 //oled is the name of the OLED object we just constructed
 
+// timer 7 segment displays
+Adafruit_7segment matrix0 = Adafruit_7segment(); // timer
+Adafruit_7segment matrix1 = Adafruit_7segment(); // leaderboard 1st place
+Adafruit_7segment matrix2 = Adafruit_7segment(); // leaderboard 2nd place
+Adafruit_7segment matrix3 = Adafruit_7segment(); // leaderboard 3rd place
+Adafruit_7segment matrix4 = Adafruit_7segment(); // current score
+volatile uint16_t timer_count;
+volatile int interrupt_counter = 0;
+
+// interrupt service routine for timer2
+ISR(TIMER2_COMPA_vect) {
+  sei();  
+  if (interrupt_counter < 10)
+  {
+    interrupt_counter++;
+  }
+  else{
+    timer_count++;
+  update_timer();
+  interrupt_counter = 0;
+  }
+}
+
+void update_timer() {
+  matrix0.writeDigitNum(0, (timer_count / 1000));
+  matrix0.writeDigitNum(1, (timer_count / 100) % 10);
+  matrix0.writeDigitNum(3, (timer_count / 10) % 10, true);
+  matrix0.writeDigitNum(4, timer_count % 10);
+ 
+  matrix0.writeDisplay();
+}
+
+void update_7seg(int score, Adafruit_7segment matrix) {
+  matrix.writeDigitNum(0, (score / 1000));
+  matrix.writeDigitNum(1, (score / 100) % 10);
+  matrix.writeDigitNum(3, (score / 10) % 10, true);
+  matrix.writeDigitNum(4, score % 10);
+ 
+  matrix.writeDisplay();
+}
+
 
 //globals for leaderboard
-int topHighScore;
-char firstNameInitial;
-char lastNameInitial;
+int highScores[3] = {0};
+// char firstNameInitial;
+// char lastNameInitial;
 uint8_t topScoreLowByte;
 uint8_t topScoreHighByte;
 // function prototype declarations
-void writeTopScoreToEEPROM();
-void readEEPROMTopScore();
+void writeTopScoreToEEPROM(int position);
+int readEEPROMTopScore(int position);
+
+
 
 /**************** STEPPER PARAMETERS ***************/
 // Define stuff for both stepper motors
@@ -121,6 +183,7 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool
       Serial.println(" HIT");
       Serial.println("Player Score: ");
       Serial.println(playerScore);
+      update_7seg(0, matrix4);
       zombieState[zombieNum] = ZOMBIE_DOWN;
       lowerZombie(zombieNum);
     } 
@@ -135,6 +198,7 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool
     if (millis() - *(lastTime) > MOVING_COOLDOWN) {
       *(lastTime) = millis();
       playerScore += 10;
+      update_7seg(0, matrix4);
       Serial.print(sensor);
       Serial.println(" HIT");
       Serial.println("Player Score: ");
@@ -193,40 +257,103 @@ void printSensorState(int sensorPin) {
 }
 
 void gameOver() {
-  if (playerScore > topHighScore) {
-    topHighScore = playerScore;  // update highest score for leaderboard --> need to write this to memory later
+  if (playerScore > highScores[0]) {
+    // topHighScore = playerScore;  // update highest score for leaderboard --> need to write this to memory later
     //write to memory
-    writeTopScoreToEEPROM();
+    highScores[2] = highScores[1];
+    highScores[1] = highScores[0];
+    highScores[0] = playerScore;
+
+    writeTopScoreToEEPROM(1, highScores[0]);
+    writeTopScoreToEEPROM(2, highScores[1]);
+    writeTopScoreToEEPROM(3, highScores[2]);
+    
+    update_7seg(highScores[0], matrix1);
+    update_7seg(highScores[1], matrix2);
+    update_7seg(highScores[2], matrix3);
   }
+  else if (playerScore > highScores[1]) {
+    highScores[2] = highScores[1];
+    highScores[1] = playerScore;
+
+    writeTopScoreToEEPROM(2, highScores[1]);
+    writeTopScoreToEEPROM(3, highScores[2]);
+    
+    update_7seg(highScores[1], matrix2);
+    update_7seg(highScores[2], matrix3);
+  }
+  else if (playerScore > highScores[2]) {
+    highScores[2] = playerScore;
+
+    writeTopScoreToEEPROM(3, highScores[2]);
+
+    update_7seg(highScores[2], matrix3);
+  }
+
+  update_7seg(0, matrix4);
 
   Serial.println("Game Over");
   Serial.print("Player Score: ");
   Serial.print(playerScore);
-  Serial.print("Top Score: ");
-  Serial.print(topHighScore);
-  while (1)
-    ;
+  while (1);
 }
+
 //read top player high score from EEPROM
-void readEEPROMTopScore() {
-    //read from EEPROM
-  firstNameInitial = EEPROM.read(0);
-  lastNameInitial = EEPROM.read(1);
-  topScoreLowByte = EEPROM.read(2);
-  topScoreHighByte = EEPROM.read(3);
-  topHighScore = topScoreLowByte + (topScoreHighByte << 8);
+int readEEPROMTopScore(int position) {
+  //read from EEPROM
+  if(position == 1) {
+    topScoreLowByte = EEPROM.read(0);
+    topScoreHighByte = EEPROM.read(1);
+  }
+  //read from EEPROM
+  else if(position == 2) {
+    topScoreLowByte = EEPROM.read(2);
+    topScoreHighByte = EEPROM.read(3);
+  }
+  //read from EEPROM
+  else if(position == 3) {
+    topScoreLowByte = EEPROM.read(4);
+    topScoreHighByte = EEPROM.read(5);
+  }
+
+  return topScoreLowByte + (topScoreHighByte << 8);
 
 }
-void writeTopScoreToEEPROM() {
 
-  EEPROM.update(0, firstNameInitial);
-  EEPROM.update(1, lastNameInitial);
+void writeTopScoreToEEPROM(int position, int score) {
 
   // Put topHighScore (16 bits?) into two 8-bit variables and then store into memory
-  topScoreLowByte = (uint8_t)topHighScore;
-  topScoreHighByte = (uint8_t)(topHighScore >> 8);
-  EEPROM.put(2, topScoreLowByte);
-  EEPROM.put(3, topScoreHighByte);
+  topScoreLowByte = (uint8_t)score;
+  topScoreHighByte = (uint8_t)(score >> 8);
+
+  if(position == 1) {
+    EEPROM.put(0, topScoreLowByte);
+    EEPROM.put(1, topScoreHighByte);
+  }
+  else if(position == 2) {
+    EEPROM.put(2, topScoreLowByte);
+    EEPROM.put(3, topScoreHighByte);
+  }
+  else if(position == 3) {
+    EEPROM.put(4, topScoreLowByte);
+    EEPROM.put(5, topScoreHighByte);
+  }
+}
+
+// dot matrix lives function
+void drawInitialLives() {
+  for (int i = 0; i < 8; i++) {
+    mx.setRow(0, 0, i, heart_fill[i]);
+  }
+
+  for (int i = 0; i < 8; i++) {
+    mx.setRow(1, 1, i, heart_fill[i]);
+  }
+
+  for (int i = 0; i < 8; i++) {
+    mx.setRow(2, 2, i, heart_empty[i]); // change later
+  }
+
 }
 
 // You can use this function if you'd like to set the pulse length in seconds
@@ -303,11 +430,30 @@ void setup() {
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
 
-  firstNameInitial = 'a';  // testing EEPROM
-  lastNameInitial = 'b';
+  // firstNameInitial = 'a';  // testing EEPROM
+  // lastNameInitial = 'b';
   // for testing: writing above intials to EEPROM to test if we can read from it after
-  writeTopScoreToEEPROM();
-  readEEPROMTopScore();
+  // writeTopScoreToEEPROM();
+
+  /************ RESET LEADERBOARD *************/
+
+  // To reset leaderboard scores, uncomment the code below
+
+  // writeTopScoreToEEPROM(1, 0);
+  // writeTopScoreToEEPROM(2, 0);
+  // writeTopScoreToEEPROM(3, 0);
+
+  /************ INIT LEADERBOARD *************/
+  highScores[0] = readEEPROMTopScore(1);
+  highScores[1] = readEEPROMTopScore(2);
+  highScores[2] = readEEPROMTopScore(3);
+  update_7seg(highScores[0], matrix1);
+  delay(10);
+  update_7seg(highScores[1], matrix2);
+  delay(10);
+  update_7seg(highScores[2], matrix3);
+  delay(10);
+  update_7seg(0, matrix4);
   delay(10);
 
   startTime = millis();
@@ -337,6 +483,40 @@ void setup() {
   // // define input pins for limit switches
   // pinMode(DETECT1, INPUT);
   // pinMode(DETECT2, INPUT);
+
+
+
+  // timer interrupts setup
+  TCCR0B = 0;
+  TCCR2A = 0;
+  OCR2A = 0;
+  TCNT2  = 0;
+  TCCR2B = 0;
+  TCCR2A = 1 << WGM21;
+  OCR2A = 400;
+  TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);
+  TIMSK2 = (1 << OCIE2A);
+  sei();
+  Serial.println("TIMER1 Setup Finished.");
+
+
+  // timer 7 segment setup
+  matrix0.begin(0x70);
+  matrix1.begin(0x77);
+  // Not sure if below has correct addresses
+  matrix2.begin(0x7e);
+  matrix3.begin(0x85);
+  matrix4.begin(0x8c);
+  Serial.println("Matrix Setup Finished.");
+  timer_count = 0;
+
+
+  // dot matrix 3 lives setup
+  mx.begin();
+  mx.control(MD_MAX72XX::INTENSITY, 0);
+  mx.clear();
+
+  drawInitialLives();
 }
 
 void loop() {
