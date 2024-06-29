@@ -115,7 +115,7 @@ void update_timer() {
 void update_7seg(int score, Adafruit_7segment matrix) {
   matrix.writeDigitNum(0, (score / 1000));
   matrix.writeDigitNum(1, (score / 100) % 10);
-  matrix.writeDigitNum(3, (score / 10) % 10, true);
+  matrix.writeDigitNum(3, (score / 10) % 10);
   matrix.writeDigitNum(4, score % 10);
  
   matrix.writeDisplay();
@@ -430,32 +430,6 @@ void setup() {
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
 
-  // firstNameInitial = 'a';  // testing EEPROM
-  // lastNameInitial = 'b';
-  // for testing: writing above intials to EEPROM to test if we can read from it after
-  // writeTopScoreToEEPROM();
-
-  /************ RESET LEADERBOARD *************/
-
-  // To reset leaderboard scores, uncomment the code below
-
-  // writeTopScoreToEEPROM(1, 0);
-  // writeTopScoreToEEPROM(2, 0);
-  // writeTopScoreToEEPROM(3, 0);
-
-  /************ INIT LEADERBOARD *************/
-  highScores[0] = readEEPROMTopScore(1);
-  highScores[1] = readEEPROMTopScore(2);
-  highScores[2] = readEEPROMTopScore(3);
-  update_7seg(highScores[0], matrix1);
-  delay(10);
-  update_7seg(highScores[1], matrix2);
-  delay(10);
-  update_7seg(highScores[2], matrix3);
-  delay(10);
-  update_7seg(0, matrix4);
-  delay(10);
-
   startTime = millis();
   Serial.println("Raising all stationary zombies");
 
@@ -497,18 +471,46 @@ void setup() {
   TCCR2B = (1 << CS22) | (1 << CS21) | (1 << CS20);
   TIMSK2 = (1 << OCIE2A);
   sei();
-  Serial.println("TIMER1 Setup Finished.");
+  Serial.println("TIMER2 Setup Finished.");
 
 
   // timer 7 segment setup
   matrix0.begin(0x70);
-  matrix1.begin(0x77);
+  matrix1.begin(0x71);
   // Not sure if below has correct addresses
   matrix2.begin(0x7e);
   matrix3.begin(0x85);
   matrix4.begin(0x8c);
   Serial.println("Matrix Setup Finished.");
   timer_count = 0;
+
+  
+  // firstNameInitial = 'a';  // testing EEPROM
+  // lastNameInitial = 'b';
+  // for testing: writing above intials to EEPROM to test if we can read from it after
+  // writeTopScoreToEEPROM();
+
+  /************ RESET LEADERBOARD *************/
+
+  // To reset leaderboard scores, uncomment the code below
+
+  // writeTopScoreToEEPROM(1, 0);
+  // writeTopScoreToEEPROM(2, 0);
+  // writeTopScoreToEEPROM(3, 0);
+
+  /************ INIT LEADERBOARD *************/
+  writeTopScoreToEEPROM(1, 100);
+  highScores[0] = readEEPROMTopScore(1);
+  highScores[1] = readEEPROMTopScore(2);
+  highScores[2] = readEEPROMTopScore(3);
+  update_7seg(highScores[0], matrix1);
+  delay(10);
+  update_7seg(highScores[1], matrix2);
+  delay(10);
+  update_7seg(highScores[2], matrix3);
+  delay(10);
+  update_7seg(0, matrix4);
+  delay(10);
 
 
   // dot matrix 3 lives setup
