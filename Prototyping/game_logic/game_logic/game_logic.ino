@@ -122,6 +122,17 @@ void update_7seg(int score, Adafruit_7segment matrix) {
 }
 
 
+// timer 7 segment displays
+Adafruit_7segment matrix0 = Adafruit_7segment();
+Adafruit_7segment matrix1 = Adafruit_7segment();
+volatile uint16_t timer_count;
+volatile int interrupt_counter = 0;
+
+// interrupt service routine for timer2
+ISR(TIMER2_COMPA_vect) {
+  sei();  
+  if (interrupt_counter < 10)
+  {
 //globals for leaderboard
 int highScores[3] = {0};
 // char firstNameInitial;
@@ -373,6 +384,18 @@ void setServoPulse(uint8_t n, double pulse) {
   Serial.println(pulse);
   pwm.setPWM(n, 0, pulse);
 }
+
+// dot matrix lives function
+void drawInitialLives() {
+  for (int i = 0; i < 8; i++) {
+    mx.setRow(0, 0, i, heart_fill[i]);
+  for (int i = 0; i < 8; i++) {
+    mx.setRow(1, 1, i, heart_fill[i]);
+  }
+
+  for (int i = 0; i < 8; i++) {
+    mx.setRow(2, 2, i, heart_empty[i]); // change later
+  }
 
 
 void setup() {
