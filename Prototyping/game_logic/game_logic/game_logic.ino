@@ -4,6 +4,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Adafruit_LEDBackpack.h>
 #include <EEPROM.h>
 #include <Adafruit_LEDBackpack.h>
 #include <Servo.h>
@@ -133,6 +134,24 @@ ISR(TIMER2_COMPA_vect) {
   sei();  
   if (interrupt_counter < 10)
   {
+    interrupt_counter++;
+  }
+  else{
+    timer_count++;
+  update_timer();
+  interrupt_counter = 0;
+  }
+}
+
+void update_timer() {
+  matrix0.writeDigitNum(0, (timer_count / 1000));
+  matrix0.writeDigitNum(1, (timer_count / 100) % 10);
+  matrix0.writeDigitNum(3, (timer_count / 10) % 10, true);
+  matrix0.writeDigitNum(4, timer_count % 10);
+ 
+  matrix0.writeDisplay();
+}
+
 //globals for leaderboard
 int highScores[3] = {0};
 // char firstNameInitial;
@@ -306,6 +325,8 @@ void gameOver() {
   Serial.println("Game Over");
   Serial.print("Player Score: ");
   Serial.print(playerScore);
+  Serial.print("Top Score: ");
+  Serial.print(topHighScore);
   while (1);
 }
 
@@ -389,6 +410,8 @@ void setServoPulse(uint8_t n, double pulse) {
 void drawInitialLives() {
   for (int i = 0; i < 8; i++) {
     mx.setRow(0, 0, i, heart_fill[i]);
+  }
+  
   for (int i = 0; i < 8; i++) {
     mx.setRow(1, 1, i, heart_fill[i]);
   }
@@ -396,6 +419,8 @@ void drawInitialLives() {
   for (int i = 0; i < 8; i++) {
     mx.setRow(2, 2, i, heart_empty[i]); // change later
   }
+
+}
 
 
 void setup() {
@@ -480,7 +505,6 @@ void setup() {
   // // define input pins for limit switches
   // pinMode(DETECT1, INPUT);
   // pinMode(DETECT2, INPUT);
-
 
 
   // timer interrupts setup
