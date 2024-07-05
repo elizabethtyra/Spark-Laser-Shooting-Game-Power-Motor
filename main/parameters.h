@@ -1,13 +1,15 @@
 #pragma once
 
 //--------------- Parameters ---------------//'
-#define SENSOR0_PIN 19
-#define SENSOR1_PIN 20
-#define SENSOR2_PIN 21
-#define SENSOR3_PIN 22
+#define SENSOR0_PIN 22
+#define SENSOR1_PIN 23
+#define SENSOR2_PIN 24
+#define SENSOR3_PIN 25
 
-#define SENSORBOSS_PIN 23
-#define SENSORCAR_PIN 24
+#define SENSORBOSS_PIN 26
+#define SENSORBOSS_PIN2 27
+#define SENSORCAR_PIN 28
+#define SENSORCAR_PIN2 29
 
 // 4 Stationary + 2 Moving
 #define NUM_SENSORS 6

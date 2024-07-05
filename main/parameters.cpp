@@ -6,7 +6,7 @@ const int stepsPerRevolution = 1000;
 const int stopDelay = 2000; // How long to wait once reached the end (to handle lives and stuff)
 const int stepDelay_high_low = 2500; // Delay for clockwise rotation
 const int stepDelay_low_high = 2500; // Delay for counterclockwise rotation
-unsigned long delayNum = 2500;
+unsigned long delayNum = 800;
 
 // Define stuff for only STEPPER1 (Boss Zombie)
 const int stepPinBoss = 4;

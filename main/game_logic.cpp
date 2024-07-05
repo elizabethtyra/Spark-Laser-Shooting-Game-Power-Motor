@@ -121,11 +121,19 @@ void printSensorState(int sensorPin) {
       break;
     }
     case SENSORBOSS_PIN: {
-      processHit("Sensor Boss", &lastHit[4], 4, true);
+      processHit("Sensor Boss 1", &lastHit[4], 4, true);
+      break;
+    }
+    case SENSORBOSS_PIN2: {
+      processHit("Sensor Boss 2", &lastHit[4], 4, true);
       break;
     }
     case SENSORCAR_PIN: {
-      processHit("Sensor Car", &lastHit[5], 5, true);
+      processHit("Sensor Car 1", &lastHit[5], 5, true);
+      break;
+    }
+    case SENSORCAR_PIN2: {
+      processHit("Sensor Car 2", &lastHit[5], 5, true);
       break;
     }
     default:

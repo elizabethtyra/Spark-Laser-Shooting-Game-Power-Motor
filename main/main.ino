@@ -117,8 +117,14 @@ void loop() {
   else if (digitalRead(SENSORBOSS_PIN)) {
     printSensorState(SENSORBOSS_PIN);
   }
+  else if (digitalRead(SENSORBOSS_PIN2)) {
+    printSensorState(SENSORBOSS_PIN2);
+  }
   else if (digitalRead(SENSORCAR_PIN)) {
     printSensorState(SENSORCAR_PIN);
+  }
+  else if (digitalRead(SENSORCAR_PIN2)) {
+    printSensorState(SENSORCAR_PIN2);
   }
 
 
