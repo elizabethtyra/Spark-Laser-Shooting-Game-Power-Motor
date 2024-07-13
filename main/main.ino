@@ -34,13 +34,9 @@ void setup() {
   highScores[1] = readEEPROMTopScore(2);
   highScores[2] = readEEPROMTopScore(3);
   update_7seg(highScores[0], topScore1);
-  delay(10);
   update_7seg(highScores[1], topScore2);
-  delay(10);
   update_7seg(highScores[2], topScore3);
-  delay(10);
   update_7seg(0, userScore);
-  delay(10);
 
   // dot matrix 3 lives setup
   livesMatrix.begin();
