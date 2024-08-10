@@ -9,6 +9,8 @@ unsigned long zombieState[NUM_SENSORS] = { 1, 1, 1, 1, 1, 1 };
 unsigned long startTime = 0;
 
 void gameOver() {
+  while (1);
+
   if (playerScore > highScores[0]) {
     // topHighScore = playerScore;  // update highest score for leaderboard --> need to write this to memory later
     //write to memory

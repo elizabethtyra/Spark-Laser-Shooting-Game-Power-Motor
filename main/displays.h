@@ -23,7 +23,9 @@
 //Hardware SPI pins for Arduino UNO, change for Arduino Mega 
 // CLK Pin  > 13 SCK
 // Data Pin > 11 MOSI
-#define CS_PIN 10
+#define CS_PIN 53
+#define DATA_PIN 51 
+#define CLK_PIN 52
 
 extern MD_MAX72XX livesMatrix;
 
@@ -55,3 +57,4 @@ void writeTopScoreToEEPROM(int position, int score);
 
 // dot matrix lives 
 void drawInitialLives();
+void updateLives(int lives);

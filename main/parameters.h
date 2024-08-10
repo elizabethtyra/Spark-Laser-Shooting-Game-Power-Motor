@@ -16,7 +16,7 @@
 #define STATIONARY_ZOMBIES 4
 #define COOLDOWN 7000
 #define MOVING_COOLDOWN 3000
-#define GAME_TIME 120000
+#define GAME_TIME 10000
 #define SERVOMIN 150   // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX 600   // This is the 'maximum' pulse length count (out of 4096)
 #define USMIN 600      // This is the rounded 'minimum' microsecond length based on the minimum pulse of 150
@@ -44,3 +44,13 @@ extern const int stepPinCar;
 extern const int dirPinCar;
 extern const int limitSwitchCar_1; // Limit switch for stepper 2 in one direction
 extern const int limitSwitchCar_2; // Limit switch for stepper 2 in the other direction
+
+// int currentHigh;
+// int currentLow;
+// int previousHigh;
+// int previousLow; 
+
+extern int currentStateBoss_1;
+extern int previousStateBoss_1;
+extern int currentStateBoss_2;
+extern int previousStateBoss_2;
