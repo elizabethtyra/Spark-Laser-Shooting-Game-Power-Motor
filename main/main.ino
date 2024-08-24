@@ -6,6 +6,10 @@
 void setup() {
   Serial.begin(9600);  // initialize how many bits/s get communicated to the Serial monitor
 
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000);
+  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+
   // timer2 interrupt setup
   TCCR0B = 0;
   TCCR2A = 0;
@@ -38,7 +42,10 @@ void setup() {
   update_7seg(highScores[2], topScore3);
   update_7seg(0, userScore);
 
-  writeTopScoreToEEPROM(3, 500);
+  writeTopScoreToEEPROM(3, 000);
+  highScores[2] = readEEPROMTopScore(3);
+  update_7seg(highScores[2], topScore3);
+
 
 
   // dot matrix 3 lives setup
@@ -49,9 +56,9 @@ void setup() {
   drawInitialLives();
 
   /**************** SENSOR PINS ***************/
-  // pinMode(SENSOR0_PIN, INPUT);
-  // pinMode(SENSOR1_PIN, INPUT);
-  // pinMode(SENSOR2_PIN, INPUT);
+  pinMode(SENSOR0_PIN, INPUT);
+  pinMode(SENSOR1_PIN, INPUT);
+  pinMode(SENSOR2_PIN, INPUT);
   // pinMode(SENSOR3_PIN, INPUT);
   // pinMode(SENSORBOSS_PIN, INPUT);
   // pinMode(SENSORCAR_PIN, INPUT);
@@ -70,18 +77,16 @@ void setup() {
   pinMode(dirPinCar, OUTPUT);
   digitalWrite(dirPinCar, HIGH);  // starts same direction
 
-  // pwm.begin();
-  // pwm.setOscillatorFrequency(27000000);
-  // pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
 
-  startTime = millis();
+
+  startTime = timer_count;
   Serial.println("Raising all stationary zombies");
 
   /**************** RESET STATIONARY ZOMBIES ***************/
-  // for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
-  //   raiseZombie(i);
-  //   zombieState[i] = ZOMBIE_UP;
-  // }
+  for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
+    raiseZombie(i);
+    zombieState[i] = ZOMBIE_UP;
+  }
 
   digitalWrite(dirPinBoss, HIGH);  // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
   digitalWrite(dirPinCar, HIGH);   // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
@@ -95,22 +100,34 @@ void loop() {
     //     raiseZombie(i);
     //     zombieState[i] = ZOMBIE_UP;
     //   }
+    for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
+      lowerZombie(i);
+      // zombieState[i] = ZOMBIE_UP;
+    }
     // }
     gameOver();
   }
 
+  /****************RAISING STATIONARY ZOMBIES***************/
+  for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
+    if (timer_count - lastHit[i] > COOLDOWN2 && zombieState[i] == ZOMBIE_DOWN) {
+      raiseZombie(i);
+      zombieState[i] = ZOMBIE_UP;
+    }
+  }
+
   /**************** DETECT ZOMBIE HIT ***************/
-  // if (digitalRead(SENSOR0_PIN)) {
-  //   printSensorState(SENSOR0_PIN);
-  // }
-  // else if (digitalRead(SENSOR1_PIN)) {
-  //   printSensorState(SENSOR1_PIN);
-  // }
-  // else if (digitalRead(SENSOR2_PIN)) {
-  //   printSensorState(SENSOR2_PIN);
-  // }
-  // else if (digitalRead(SENSOR3_PIN)) {
-  //   printSensorState(SENSOR3_PIN);
+  if (timer_count - lastHit[0] > COOLDOWN && digitalRead(SENSOR0_PIN)) {
+    printSensorState(SENSOR0_PIN);
+  } else if (timer_count - lastHit[1] > COOLDOWN && digitalRead(SENSOR1_PIN)) {
+    printSensorState(SENSOR1_PIN);
+  } else if (timer_count - lastHit[2] > COOLDOWN && digitalRead(SENSOR2_PIN)) {
+    printSensorState(SENSOR2_PIN);
+  }
+  // else if (timer_count - lastHit[3] > COOLDOWN) {
+  //   if(digitalRead(SENSOR3_PIN)) {
+  //     printSensorState(SENSOR3_PIN);
+  //   }
   // }
   // else if (digitalRead(SENSORBOSS_PIN)) {
   //   printSensorState(SENSORBOSS_PIN);
@@ -125,14 +142,6 @@ void loop() {
   //   printSensorState(SENSORCAR_PIN2);
   // }
 
-
-  /****************RAISING STATIONARY ZOMBIES***************/
-  // for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
-  //   if (millis() - lastHit[i] > COOLDOWN && zombieState[i] == ZOMBIE_DOWN) {
-  //     raiseZombie(i);
-  //     zombieState[i] = ZOMBIE_UP;
-  //   }
-  // }
 
   /**************** MOVING ZOMBIES ***************/
 
@@ -156,11 +165,14 @@ void loop() {
   digitalWrite(stepPinCar, LOW);
   delayMicroseconds(delayNum);
 
-
+  // Debouncing switches
   currentStateBoss_1 = digitalRead(limitSwitchBoss_1);
   currentStateBoss_2 = digitalRead(limitSwitchBoss_2);
+  currentStateCar_1 = digitalRead(limitSwitchCar_1);
+  currentStateCar_2 = digitalRead(limitSwitchCar_2);
 
 
+  // BOSS ZOMBIE LIMIT SWITCHES
   if (currentStateBoss_1 != previousStateBoss_1) {
     if (currentStateBoss_1 == LOW) {
       digitalWrite(dirPinBoss, HIGH);
@@ -178,21 +190,26 @@ void loop() {
       zombieState[4] = 0;
     }
   }
-  previousStateBoss_1 = currentStateBoss_1;
-  previousStateBoss_2 = currentStateBoss_2;
-
-
-  // BOSS ZOMBIE LIMIT SWITCHES
 
   // CAR ZOMBIE LIMIT SWITCHES
-  if (digitalRead(limitSwitchCar_1) == HIGH) {
-    digitalWrite(dirPinCar, HIGH);
-    zombieState[5] = 1;
-    // delay(stopDelay); // wait for the zombie to do stuff -> call zombie function here
+  if (currentStateCar_1 != previousStateCar_1) {
+    if (currentStateCar_1 == LOW) {
+      digitalWrite(dirPinCar, HIGH);
+      zombieState[5] = 1;
+    }
   }
-  if (digitalRead(limitSwitchCar_2) == HIGH) {
-    digitalWrite(dirPinCar, LOW);
-    zombieState[5] = 0;
-    // delay(stopDelay); // wait for the zombie to do stuff -> call zombie function here
+
+  if (currentStateCar_2 != previousStateCar_2) {
+    if (currentStateCar_2 == LOW) {
+      digitalWrite(dirPinCar, LOW);
+      zombieState[5] = 0;
+    }
   }
+
+  // Update states
+  previousStateBoss_1 = currentStateBoss_1;
+  previousStateBoss_2 = currentStateBoss_2;
+  previousStateCar_1 = currentStateCar_1;
+  previousStateCar_2 = currentStateCar_2;
+
 }

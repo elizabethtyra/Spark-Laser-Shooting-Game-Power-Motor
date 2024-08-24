@@ -24,3 +24,7 @@ int currentStateBoss_1 = 0;
 int previousStateBoss_1 = 0;
 int currentStateBoss_2 = 0;
 int previousStateBoss_2 = 0;
+int currentStateCar_1 = 0;
+int previousStateCar_1 = 0;
+int currentStateCar_2 = 0;
+int previousStateCar_2 = 0;

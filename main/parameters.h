@@ -13,10 +13,11 @@
 
 // 4 Stationary + 2 Moving
 #define NUM_SENSORS 6
-#define STATIONARY_ZOMBIES 4
-#define COOLDOWN 7000
-#define MOVING_COOLDOWN 3000
-#define GAME_TIME 10000
+#define STATIONARY_ZOMBIES 3
+#define COOLDOWN 50
+#define COOLDOWN2 40
+#define MOVING_COOLDOWN 30
+#define GAME_TIME 1200
 #define SERVOMIN 150   // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX 600   // This is the 'maximum' pulse length count (out of 4096)
 #define USMIN 600      // This is the rounded 'minimum' microsecond length based on the minimum pulse of 150
@@ -54,3 +55,7 @@ extern int currentStateBoss_1;
 extern int previousStateBoss_1;
 extern int currentStateBoss_2;
 extern int previousStateBoss_2;
+extern int currentStateCar_1;
+extern int previousStateCar_1;
+extern int currentStateCar_2;
+extern int previousStateCar_2;

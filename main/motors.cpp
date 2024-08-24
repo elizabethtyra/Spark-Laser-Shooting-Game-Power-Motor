@@ -9,7 +9,7 @@
 #include <Servo.h>
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
-uint8_t servonum = 12;
+uint8_t servonum = 0;
 
 void lowerZombie(int zombieNum) {
   Serial.println("Lowering zombie ");
