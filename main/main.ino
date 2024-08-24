@@ -119,9 +119,13 @@ void loop() {
   /**************** DETECT ZOMBIE HIT ***************/
   if (timer_count - lastHit[0] > COOLDOWN && digitalRead(SENSOR0_PIN)) {
     printSensorState(SENSOR0_PIN);
-  } else if (timer_count - lastHit[1] > COOLDOWN && digitalRead(SENSOR1_PIN)) {
+  }
+  
+  if (timer_count - lastHit[1] > COOLDOWN && digitalRead(SENSOR1_PIN)) {
     printSensorState(SENSOR1_PIN);
-  } else if (timer_count - lastHit[2] > COOLDOWN && digitalRead(SENSOR2_PIN)) {
+  }
+  
+  if (timer_count - lastHit[2] > COOLDOWN && digitalRead(SENSOR2_PIN)) {
     printSensorState(SENSOR2_PIN);
   }
   // else if (timer_count - lastHit[3] > COOLDOWN) {
