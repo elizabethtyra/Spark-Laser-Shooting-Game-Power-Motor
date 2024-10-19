@@ -20,11 +20,10 @@ void setup() {
   mx.begin();
   mx.control(MD_MAX72XX::INTENSITY, 0);
   mx.clear();
-
+  drawShape();
 }
 
 void loop() {
-  drawShape();
   
 }
 

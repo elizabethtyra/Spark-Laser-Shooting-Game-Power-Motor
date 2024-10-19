@@ -4,7 +4,7 @@
 
 #define COOLDOWN 7000
 #define NPN_PIN 7
-#define BUTTON_PIN 5
+#define BUTTON_PIN 9
 #define RELOAD_PIN 3
 #define BULLETS 200
 #define SCREEN_WIDTH 128
@@ -38,7 +38,7 @@ void reload() {
     Serial.println("Reloading");
     displayText("Reloading");
     delay(1000);
-    displayBullets(200);
+    displayBullets(BULLETS);
     bulletCount = BULLETS;
 }
 
@@ -53,12 +53,11 @@ void setup() {
   }
   digitalWrite(8, HIGH); // comment out when real laser is used
   pinMode(RELOAD_PIN, INPUT);
-  displayBullets(200);
+  displayBullets(BULLETS);
 
 }
 
 void loop() {
-  
   if(digitalRead(RELOAD_PIN)) {
     reload();
   }

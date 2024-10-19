@@ -12,9 +12,10 @@
 #define SENSORCAR_PIN2 29
 
 // 4 Stationary + 2 Moving
-#define NUM_SENSORS 6
-#define STATIONARY_ZOMBIES 3
-#define COOLDOWN 50
+#define NUM_SENSORS 8
+#define NUM_SERVOS 5
+#define STATIONARY_ZOMBIES 4
+#define COOLDOWN 50 // tenths of a second
 #define COOLDOWN2 40
 #define MOVING_COOLDOWN 30
 #define GAME_TIME 1200
