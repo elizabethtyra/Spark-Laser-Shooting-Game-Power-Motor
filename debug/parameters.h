@@ -13,11 +13,11 @@
 
 // 4 Stationary + 2 Moving
 #define NUM_SENSORS 8
-#define NUM_SERVOS 5 // Change to 6 once we add car servo
+#define NUM_ZOMBIES 6
 #define STATIONARY_ZOMBIES 4
 #define COOLDOWN 50 // tenths of a second
 #define COOLDOWN2 40
-#define MOVING_COOLDOWN 30
+#define MOVING_COOLDOWN 30 // for car and boss sensor hit cooldown
 #define GAME_TIME 1200
 #define SERVOMIN 150   // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX 600   // This is the 'maximum' pulse length count (out of 4096)

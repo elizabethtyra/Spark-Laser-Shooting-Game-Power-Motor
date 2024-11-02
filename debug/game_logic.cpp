@@ -4,8 +4,8 @@
 
 int playerScore = 0;
 int playerLives = 3;
-unsigned long lastHit[NUM_SENSORS] = { -1*COOLDOWN };
-unsigned long zombieState[NUM_SERVOS] = { 1, 1, 1, 1, 1}; // Change to 6 once we add car servo
+unsigned long lastHit[NUM_ZOMBIES] = { -1*COOLDOWN }; // -1*COOLDOWN for inital game start
+unsigned long zombieState[NUM_ZOMBIES] = { 1, 1, 1, 1, 1, 1}; 
 unsigned long startTime = 0;
 
 void gameOver() {
@@ -69,25 +69,24 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool
 
   // Process moving zombies by changing direction in addition to score
   else if (moving) {
-    if (timer_count - *(lastTime) > MOVING_COOLDOWN) {
-      *(lastTime) = timer_count;
-      playerScore += 10;
-      update_7seg(playerScore, userScore);
-      Serial.print(sensor);
-      Serial.println(" HIT");
-      Serial.println("Player Score: ");
-      Serial.println(playerScore);
-      // Toggle direction (flips between 1 and 0)
-      // Then write direction to stepper boss/car
-      zombieState[zombieNum] = 1 - zombieState[zombieNum];
-      Serial.println("Direction switched");
-      zombieState[zombieNum] == ZOMBIE_UP ? lowerZombie(zombieNum) : raiseZombie(zombieNum);
-      if (zombieNum == 4) {
-        digitalWrite(dirPinBoss, zombieState[zombieNum]);
-      } else if (zombieNum == 5) {
-        digitalWrite(dirPinCar, zombieState[zombieNum]);
-      }
+    *(lastTime) = timer_count;
+    playerScore += 10;
+    update_7seg(playerScore, userScore);
+    Serial.print(sensor);
+    Serial.println(" HIT");
+    Serial.println("Player Score: ");
+    Serial.println(playerScore);
+    // Toggle direction (flips between 1 and 0)
+    // Then write direction to stepper boss/car
+    zombieState[zombieNum] = 1 - zombieState[zombieNum];
+    Serial.println("Direction switched");
+    zombieState[zombieNum] == ZOMBIE_UP ? lowerZombie(zombieNum) : raiseZombie(zombieNum);
+    if (zombieNum == 4) {
+      digitalWrite(dirPinBoss, 1 - zombieState[zombieNum]);
+    } else if (zombieNum == 5) {
+      digitalWrite(dirPinCar, 1 - zombieState[zombieNum]);
     }
+    
   }
 }
 

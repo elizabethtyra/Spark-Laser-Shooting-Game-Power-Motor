@@ -4,8 +4,8 @@
 
 extern int playerScore;
 extern int playerLives;
-extern unsigned long lastHit[NUM_SENSORS];
-extern unsigned long zombieState[NUM_SERVOS];
+extern unsigned long lastHit[NUM_ZOMBIES];
+extern unsigned long zombieState[NUM_ZOMBIES];
 extern unsigned long startTime;
 
 void gameOver();
