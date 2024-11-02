@@ -5,7 +5,7 @@
 int playerScore = 0;
 int playerLives = 3;
 unsigned long lastHit[NUM_SENSORS] = { -1*COOLDOWN };
-unsigned long zombieState[NUM_SERVOS] = { 1, 1, 1, 1, 1};
+unsigned long zombieState[NUM_SERVOS] = { 1, 1, 1, 1, 1}; // Change to 6 once we add car servo
 unsigned long startTime = 0;
 
 void gameOver() {

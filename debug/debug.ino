@@ -140,8 +140,8 @@ void setup() {
     zombieState[i] = ZOMBIE_UP;
   }
 
-  digitalWrite(dirPinBoss, HIGH);  // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
-  digitalWrite(dirPinCar, HIGH);   // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
+  digitalWrite(dirPinBoss, LOW);  // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
+  digitalWrite(dirPinCar, LOW);   // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
 
   displayText("Done Setup");
 }
@@ -259,38 +259,38 @@ void loop() {
 
   // BOSS ZOMBIE LIMIT SWITCHES
   if (currentStateBoss_1 != previousStateBoss_1) {
-    if (currentStateBoss_1 == LOW) {
+    if (currentStateBoss_1 == LOW && zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) {
       digitalWrite(dirPinBoss, HIGH);
       playerLives--;
       updateLives(playerLives);
-      zombieState[4] = ZOMBIE_DOWN;
-      lowerZombie(4);
+      zombieState[BOSS_ZOMBIE] = ZOMBIE_DOWN;
+      lowerZombie(BOSS_ZOMBIE);
     }
   }
 
-  if (currentStateBoss_2 != previousStateBoss_2) {
+  if (currentStateBoss_2 != previousStateBoss_2 && zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) {
     if (currentStateBoss_2 == LOW) {
       digitalWrite(dirPinBoss, LOW);
       playerLives--;
       updateLives(playerLives);
-      zombieState[4] = ZOMBIE_UP;
-      raiseZombie(4);
+      zombieState[BOSS_ZOMBIE] = ZOMBIE_UP;
+      raiseZombie(BOSS_ZOMBIE);
     }
   }
 
   // CAR ZOMBIE LIMIT SWITCHES
-  if (currentStateCar_1 != previousStateCar_1) {
+  if (currentStateCar_1 != previousStateCar_1  && zombieState[CAR_ZOMBIE] == ZOMBIE_UP) {
     if (currentStateCar_1 == LOW) {
       digitalWrite(dirPinCar, HIGH);
-      zombieState[5] = 1;
+      zombieState[CAR_ZOMBIE] = ZOMBIE_DOWN;
       // raiseZombie(5);
     }
   }
 
-  if (currentStateCar_2 != previousStateCar_2) {
+  if (currentStateCar_2 != previousStateCar_2  && zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
     if (currentStateCar_2 == LOW) {
       digitalWrite(dirPinCar, LOW);
-      zombieState[5] = 0;
+      zombieState[CAR_ZOMBIE] = ZOMBIE_DOWN;
       // lowerZombie(5);
     }
   }

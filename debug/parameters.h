@@ -13,7 +13,7 @@
 
 // 4 Stationary + 2 Moving
 #define NUM_SENSORS 8
-#define NUM_SERVOS 5
+#define NUM_SERVOS 5 // Change to 6 once we add car servo
 #define STATIONARY_ZOMBIES 4
 #define COOLDOWN 50 // tenths of a second
 #define COOLDOWN2 40
@@ -26,6 +26,8 @@
 #define SERVO_FREQ 50  // Analog servos run at ~50 Hz updates
 #define ZOMBIE_DOWN 0
 #define ZOMBIE_UP 1
+#define BOSS_ZOMBIE 4
+#define CAR_ZOMBIE 5
 
 /**************** STEPPER PARAMETERS ***************/
 // Define stuff for both stepper motors
