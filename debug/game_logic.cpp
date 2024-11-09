@@ -5,7 +5,7 @@
 int playerScore = 0;
 int playerLives = 3;
 unsigned long lastHit[NUM_ZOMBIES] = { -1*COOLDOWN }; // -1*COOLDOWN for inital game start
-unsigned long zombieState[NUM_ZOMBIES] = { 1, 1, 1, 1, 1, 1}; 
+unsigned long zombieState[NUM_ZOMBIES] = {0}; 
 unsigned long startTime = 0;
 
 void gameOver() {
@@ -80,11 +80,11 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool
     // Then write direction to stepper boss/car
     zombieState[zombieNum] = 1 - zombieState[zombieNum];
     Serial.println("Direction switched");
-    zombieState[zombieNum] == ZOMBIE_UP ? lowerZombie(zombieNum) : raiseZombie(zombieNum);
+    zombieState[zombieNum] == ZOMBIE_UP ? raiseZombie(zombieNum) : lowerZombie(zombieNum);
     if (zombieNum == 4) {
-      digitalWrite(dirPinBoss, 1 - zombieState[zombieNum]);
+      digitalWrite(dirPinBoss, zombieState[zombieNum]);
     } else if (zombieNum == 5) {
-      digitalWrite(dirPinCar, 1 - zombieState[zombieNum]);
+      digitalWrite(dirPinCar, zombieState[zombieNum]);
     }
     
   }

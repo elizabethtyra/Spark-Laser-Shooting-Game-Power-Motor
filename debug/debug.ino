@@ -118,14 +118,14 @@ void setup() {
   pinMode(limitSwitchBoss_2, INPUT_PULLUP);
   pinMode(stepPinBoss, OUTPUT);
   pinMode(dirPinBoss, OUTPUT);
-  digitalWrite(dirPinBoss, LOW);  // starts same direction
+  digitalWrite(dirPinBoss, LOW);  // starts counterclockwise, init zombie state = 1
 
   // STEPPER2 SET setup
   pinMode(limitSwitchCar_1, INPUT_PULLUP);
   pinMode(limitSwitchCar_2, INPUT_PULLUP);
   pinMode(stepPinCar, OUTPUT);
   pinMode(dirPinCar, OUTPUT);
-  digitalWrite(dirPinCar, LOW);  // starts same direction
+  digitalWrite(dirPinCar, LOW);  // starts counterclockwise, init zombie state = 1
 
   
   startTime = timer_count;
@@ -140,8 +140,8 @@ void setup() {
     zombieState[i] = ZOMBIE_UP;
   }
 
-  digitalWrite(dirPinBoss, LOW);  // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
-  digitalWrite(dirPinCar, LOW);   // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
+  // digitalWrite(dirPinBoss, LOW);  // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
+  // digitalWrite(dirPinCar, LOW);   // ASSUME THIS IS THE RIGHT WAY OTHERWISE WILL SWITCH
 
   displayText("Done Setup");
 }
@@ -205,38 +205,27 @@ void loop() {
     printSensorState(SENSOR3_PIN);
   }
 
-  else if (timer_count - lastHit[4] > MOVING_COOLDOWN && zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) {
-    if (digitalRead(SENSORBOSS_PIN))
-    {
-      displayText("boss π hit");
-      printSensorState(SENSORBOSS_PIN);
-    }
-  }
-
-  else if (timer_count - lastHit[4] > MOVING_COOLDOWN && zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) {
-    if (digitalRead(SENSORBOSS_PIN2))
-    {
-      printSensorState(SENSORBOSS_PIN2);
-      displayText("boss * hit");
-    }
-  }
-
-  else if (timer_count - lastHit[5] > MOVING_COOLDOWN && zombieState[CAR_ZOMBIE] == ZOMBIE_UP) {
-    if (digitalRead(SENSORCAR_PIN))
-    {
+  else if ((timer_count - lastHit[5] > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORCAR_PIN))) {
       printSensorState(SENSORCAR_PIN);
       displayText("car π hit");
-    }
-
   }
 
-  else if (timer_count - lastHit[5] > MOVING_COOLDOWN  && zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
-    if (digitalRead(SENSORCAR_PIN2))
-    {
-      displayText("car * hit");
+  else if ((timer_count - lastHit[5] > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORCAR_PIN2))) {
       printSensorState(SENSORCAR_PIN2);
-    }
+      displayText("car * hit");
   }
+
+  else if ((timer_count - lastHit[4] > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORBOSS_PIN))) {
+      printSensorState(SENSORBOSS_PIN);
+      displayText("boss π hit");
+  }
+
+  else if ((timer_count - lastHit[4] > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORBOSS_PIN2))) {
+      printSensorState(SENSORBOSS_PIN2);
+      displayText("boss * hit");
+  }
+  
+
 
 
   /**************** MOVING ZOMBIES ***************/
@@ -267,7 +256,7 @@ void loop() {
   currentStateCar_1 = digitalRead(limitSwitchCar_1);
   currentStateCar_2 = digitalRead(limitSwitchCar_2);
 
-
+  // low = ccw = zombie_up
   // BOSS ZOMBIE LIMIT SWITCHES
   if (currentStateBoss_1 != previousStateBoss_1 && 
       currentStateBoss_1 == LOW && 

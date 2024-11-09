@@ -8,8 +8,8 @@
 
 #define SENSORBOSS_PIN 26
 #define SENSORBOSS_PIN2 27
-#define SENSORCAR_PIN 28
-#define SENSORCAR_PIN2 29
+#define SENSORCAR_PIN 30
+#define SENSORCAR_PIN2 31
 
 // 4 Stationary + 2 Moving
 #define NUM_SENSORS 8
@@ -24,8 +24,8 @@
 #define USMIN 600      // This is the rounded 'minimum' microsecond length based on the minimum pulse of 150
 #define USMAX 2400     // This is the rounded 'maximum' microsecond length based on the maximum pulse of 600
 #define SERVO_FREQ 50  // Analog servos run at ~50 Hz updates
-#define ZOMBIE_DOWN 0
-#define ZOMBIE_UP 1
+#define ZOMBIE_DOWN 1
+#define ZOMBIE_UP 0
 #define BOSS_ZOMBIE 4
 #define CAR_ZOMBIE 5
 
