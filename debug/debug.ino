@@ -118,14 +118,14 @@ void setup() {
   pinMode(limitSwitchBoss_2, INPUT_PULLUP);
   pinMode(stepPinBoss, OUTPUT);
   pinMode(dirPinBoss, OUTPUT);
-  digitalWrite(dirPinBoss, LOW);  // starts counterclockwise, init zombie state = 1
+  digitalWrite(dirPinBoss, LOW);  // starts counterclockwise, init zombie state = 0 = ZOMBIE_UP
 
   // STEPPER2 SET setup
   pinMode(limitSwitchCar_1, INPUT_PULLUP);
   pinMode(limitSwitchCar_2, INPUT_PULLUP);
   pinMode(stepPinCar, OUTPUT);
   pinMode(dirPinCar, OUTPUT);
-  digitalWrite(dirPinCar, LOW);  // starts counterclockwise, init zombie state = 1
+  digitalWrite(dirPinCar, LOW);  // starts counterclockwise, init zombie state = 0 = ZOMBIE_UP
 
   
   startTime = timer_count;
@@ -256,7 +256,7 @@ void loop() {
   currentStateCar_1 = digitalRead(limitSwitchCar_1);
   currentStateCar_2 = digitalRead(limitSwitchCar_2);
 
-  // low = ccw = zombie_up
+  // LOW = CCW = ZOMBIE_UP = 0
   // BOSS ZOMBIE LIMIT SWITCHES
   if (currentStateBoss_1 != previousStateBoss_1 && 
       currentStateBoss_1 == LOW && 
