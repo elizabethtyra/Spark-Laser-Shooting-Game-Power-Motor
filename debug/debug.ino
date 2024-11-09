@@ -74,7 +74,7 @@ void setup() {
   topScore3.begin(0x73);
   userScore.begin(0x74);
   displayText("Matrix Setup Finished.");
-  timer_count = 0;
+  timer_count = GAME_TIME;
   playerScore = 0;
 
   // init leaderboard
@@ -128,7 +128,7 @@ void setup() {
   digitalWrite(dirPinCar, LOW);  // starts counterclockwise, init zombie state = 0 = ZOMBIE_UP
 
   
-  startTime = timer_count;
+  // startTime = timer_count;
   // Serial.println("Raising all stationary zombies");
   displayText("end of setup");
 
@@ -151,7 +151,7 @@ void loop() {
   /****************GAME END***************/
   // displayText("In loop");
 
-  if ((timer_count >= GAME_TIME) || (playerLives == 0)) {
+  if ((timer_count <= 0) || (playerLives == 0)) {
 
     if (zombieState[0] == ZOMBIE_UP) {
       displayText("zombie state 0 up");

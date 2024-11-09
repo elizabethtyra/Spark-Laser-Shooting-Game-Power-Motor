@@ -42,8 +42,8 @@ ISR(TIMER2_COMPA_vect) {
   sei();
   if (interrupt_counter < 10) {
     interrupt_counter++;
-  } else {
-    timer_count++;
+  } else if (timer_count > 0) {
+    timer_count--;
     update_timer();
     interrupt_counter = 0;
   }
