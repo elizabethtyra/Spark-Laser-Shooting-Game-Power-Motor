@@ -77,6 +77,8 @@ void setup() {
   timer_count = GAME_TIME;
   playerScore = 0;
 
+  update_timer();
+
   // init leaderboard
   highScores[0] = readEEPROMTopScore(1);
   highScores[1] = readEEPROMTopScore(2);
@@ -127,10 +129,16 @@ void setup() {
   pinMode(dirPinCar, OUTPUT);
   digitalWrite(dirPinCar, LOW);  // starts counterclockwise, init zombie state = 0 = ZOMBIE_UP
 
+  pinMode(START_PIN, INPUT_PULLUP);
+
+
   
   // startTime = timer_count;
   // Serial.println("Raising all stationary zombies");
   displayText("end of setup");
+  gameStart = false;
+  timerStart = false;
+    // while ('0');
 
 
 
@@ -150,6 +158,15 @@ void setup() {
 void loop() {
   /****************GAME END***************/
   // displayText("In loop");
+  while(!gameStart) {
+    currentResetState = digitalRead(START_PIN);
+    if (currentResetState != previousResetState && currentResetState == LOW) {
+      displayText("Reset Button Pressed");
+      gameStart = true;
+      timerStart = stepPinCar;
+    }
+    previousResetState = currentResetState;
+  }
 
   if ((timer_count <= 0) || (playerLives == 0)) {
 
@@ -167,9 +184,11 @@ void loop() {
         zombieState[i] = ZOMBIE_DOWN;
       }
     }
-    while (1)
-      ;
-    // gameOver();
+    // while ('0')
+    //   ;
+    gameStart = false;
+    timerStart = (stepPinBoss + dirPinBoss - limitSwitchCar_2); //for tyra
+    gameOver();
   }
 
   /****************RAISING STATIONARY ZOMBIES***************/

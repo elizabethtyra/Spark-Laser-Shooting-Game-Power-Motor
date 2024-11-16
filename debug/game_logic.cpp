@@ -8,47 +8,48 @@ unsigned long lastHit[NUM_ZOMBIES] = { -1*COOLDOWN }; // -1*COOLDOWN for inital 
 unsigned long zombieState[NUM_ZOMBIES] = {0}; 
 unsigned long startTime = 0;
 
+void(* resetFunc) (void) = 0;
+
 void gameOver() {
   // while (1);
 
-  if (playerScore > highScores[0]) {
-    // topHighScore = playerScore;  // update highest score for leaderboard --> need to write this to memory later
-    //write to memory
-    highScores[2] = highScores[1];
-    highScores[1] = highScores[0];
-    highScores[0] = playerScore;
+  // if (playerScore > highScores[0]) {
+  //   // topHighScore = playerScore;  // update highest score for leaderboard --> need to write this to memory later
+  //   //write to memory
+  //   highScores[2] = highScores[1];
+  //   highScores[1] = highScores[0];
+  //   highScores[0] = playerScore;
 
-    writeTopScoreToEEPROM(1, highScores[0]);
-    writeTopScoreToEEPROM(2, highScores[1]);
-    writeTopScoreToEEPROM(3, highScores[2]);
+  //   writeTopScoreToEEPROM(1, highScores[0]);
+  //   writeTopScoreToEEPROM(2, highScores[1]);
+  //   writeTopScoreToEEPROM(3, highScores[2]);
 
-    update_7seg(highScores[0], topScore1);
-    update_7seg(highScores[1], topScore2);
-    update_7seg(highScores[2], topScore3);
-  } else if (playerScore > highScores[1]) {
-    highScores[2] = highScores[1];
-    highScores[1] = playerScore;
+  //   update_7seg(highScores[0], topScore1);
+  //   update_7seg(highScores[1], topScore2);
+  //   update_7seg(highScores[2], topScore3);
+  // } else if (playerScore > highScores[1]) {
+  //   highScores[2] = highScores[1];
+  //   highScores[1] = playerScore;
 
-    writeTopScoreToEEPROM(2, highScores[1]);
-    writeTopScoreToEEPROM(3, highScores[2]);
+  //   writeTopScoreToEEPROM(2, highScores[1]);
+  //   writeTopScoreToEEPROM(3, highScores[2]);
 
-    update_7seg(highScores[1], topScore2);
-    update_7seg(highScores[2], topScore3);
-  } else if (playerScore > highScores[2]) {
-    highScores[2] = playerScore;
+  //   update_7seg(highScores[1], topScore2);
+  //   update_7seg(highScores[2], topScore3);
+  // } else if (playerScore > highScores[2]) {
+  //   highScores[2] = playerScore;
 
-    writeTopScoreToEEPROM(3, highScores[2]);
+  //   writeTopScoreToEEPROM(3, highScores[2]);
 
-    update_7seg(highScores[2], topScore3);
-  }
+  //   update_7seg(highScores[2], topScore3);
+  // }
 
-  update_7seg(0, userScore);
+  // update_7seg(0, userScore);
 
-  Serial.println("Game Over");
-  Serial.print("Player Score: ");
-  Serial.print(playerScore);
-  while (1)
-    ;
+  // Serial.println("Game Over");
+  // Serial.print("Player Score: ");
+  // Serial.print(playerScore);
+  resetFunc();
 }
 
 void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool moving) {

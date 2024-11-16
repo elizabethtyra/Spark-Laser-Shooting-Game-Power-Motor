@@ -28,3 +28,7 @@ int currentStateCar_1 = 0;
 int previousStateCar_1 = 0;
 int currentStateCar_2 = 0;
 int previousStateCar_2 = 0;
+int previousResetState = 0;
+int currentResetState = 0;
+int gameStart = false; // 0
+int timerStart = ('NUL' - 'NUL')*0;
