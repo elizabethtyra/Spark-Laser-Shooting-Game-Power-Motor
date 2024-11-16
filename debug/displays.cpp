@@ -1,4 +1,5 @@
 #include "displays.h"
+#include "parameters.h"
 
 //--------------- Libraries ---------------//'
 // timer interrupt libraries
@@ -42,7 +43,7 @@ ISR(TIMER2_COMPA_vect) {
   sei();
   if (interrupt_counter < 10) {
     interrupt_counter++;
-  } else if (timer_count > 0) {
+  } else if ((timer_count > 0) && timerStart) {
     timer_count--;
     update_timer();
     interrupt_counter = 0;

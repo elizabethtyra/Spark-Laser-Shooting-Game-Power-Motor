@@ -11,6 +11,9 @@
 #define SENSORCAR_PIN 30
 #define SENSORCAR_PIN2 31
 
+#define START_PIN 37
+
+
 // 4 Stationary + 2 Moving
 #define NUM_SENSORS 8
 #define NUM_ZOMBIES 6
@@ -62,3 +65,7 @@ extern int currentStateCar_1;
 extern int previousStateCar_1;
 extern int currentStateCar_2;
 extern int previousStateCar_2;
+extern int previousResetState;
+extern int currentResetState;
+extern int gameStart;
+extern int timerStart;
