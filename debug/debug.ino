@@ -19,12 +19,12 @@ void displayText(const char* text) {
 
 void setup() {
   Serial.begin(115200);  // initialize how many bits/s get communicated to the Serial monitor
-    //   writeTopScoreToEEPROM(1, 999);
-    // writeTopScoreToEEPROM(2, 888);
-    // writeTopScoreToEEPROM(3, 777);
+  //   writeTopScoreToEEPROM(1, 999);
+  // writeTopScoreToEEPROM(2, 888);
+  // writeTopScoreToEEPROM(3, 777);
 
 
-    pwm.begin();
+  pwm.begin();
   delay(1000);
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
@@ -34,7 +34,7 @@ void setup() {
   livesMatrix.control(MD_MAX72XX::INTENSITY, 0);
 
   livesMatrix.clear();
-  
+
 
 
   drawInitialLives();
@@ -94,14 +94,14 @@ void setup() {
 
 
 
-// for(int i = 0; i < 3; i++) {
-// digitalWrite(LED_BUILTIN, HIGH);
-// delay(1000);
-// digitalWrite(LED_BUILTIN, LOW);
-// delay(1000);
+  // for(int i = 0; i < 3; i++) {
+  // digitalWrite(LED_BUILTIN, HIGH);
+  // delay(1000);
+  // digitalWrite(LED_BUILTIN, LOW);
+  // delay(1000);
 
 
-// }
+  // }
 
 
 
@@ -132,13 +132,13 @@ void setup() {
   pinMode(START_PIN, INPUT_PULLUP);
 
 
-  
+
   // startTime = timer_count;
   // Serial.println("Raising all stationary zombies");
   displayText("end of setup");
   gameStart = false;
   timerStart = false;
-    // while ('0');
+  // while ('0');
 
 
 
@@ -158,7 +158,7 @@ void setup() {
 void loop() {
   /****************GAME END***************/
   // displayText("In loop");
-  while(!gameStart) {
+  while (!gameStart) {
     currentResetState = digitalRead(START_PIN);
     if (currentResetState != previousResetState && currentResetState == LOW) {
       displayText("Reset Button Pressed");
@@ -172,12 +172,11 @@ void loop() {
 
     if (zombieState[0] == ZOMBIE_UP) {
       displayText("zombie state 0 up");
-    }
-    else if (zombieState[0] == ZOMBIE_DOWN) {
+    } else if (zombieState[0] == ZOMBIE_DOWN) {
       displayText("zombie state 0 DOWN");
     }
 
-    
+
     for (int i = 0; i < NUM_ZOMBIES; i++) {
       if (zombieState[i] == ZOMBIE_UP) {
         lowerZombie(i);
@@ -187,7 +186,7 @@ void loop() {
     // while ('0')
     //   ;
     gameStart = false;
-    timerStart = (stepPinBoss + dirPinBoss - limitSwitchCar_2); //for tyra
+    timerStart = (stepPinBoss + dirPinBoss - limitSwitchCar_2);  //for tyra
     gameOver();
   }
 
@@ -202,7 +201,7 @@ void loop() {
   /**************** DETECT ZOMBIE HIT ***************/
   if (timer_count - lastHit[0] > COOLDOWN && digitalRead(SENSOR0_PIN)) {
     printSensorState(SENSOR0_PIN);
-  displayText("sensor 0 hit");
+    displayText("sensor 0 hit");
 
   }
 
@@ -214,7 +213,7 @@ void loop() {
 
   else if (timer_count - lastHit[2] > COOLDOWN && digitalRead(SENSOR2_PIN)) {
     printSensorState(SENSOR2_PIN);
-  displayText("sensor 2 hit");
+    displayText("sensor 2 hit");
 
   }
 
@@ -225,25 +224,25 @@ void loop() {
   }
 
   else if ((timer_count - lastHit[5] > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORCAR_PIN))) {
-      printSensorState(SENSORCAR_PIN);
-      displayText("car π hit");
+    printSensorState(SENSORCAR_PIN);
+    displayText("car π hit");
   }
 
   else if ((timer_count - lastHit[5] > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORCAR_PIN2))) {
-      printSensorState(SENSORCAR_PIN2);
-      displayText("car * hit");
+    printSensorState(SENSORCAR_PIN2);
+    displayText("car * hit");
   }
 
   else if ((timer_count - lastHit[4] > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORBOSS_PIN))) {
-      printSensorState(SENSORBOSS_PIN);
-      displayText("boss π hit");
+    printSensorState(SENSORBOSS_PIN);
+    displayText("boss π hit");
   }
 
   else if ((timer_count - lastHit[4] > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORBOSS_PIN2))) {
-      printSensorState(SENSORBOSS_PIN2);
-      displayText("boss * hit");
+    printSensorState(SENSORBOSS_PIN2);
+    displayText("boss * hit");
   }
-  
+
 
 
 
@@ -277,21 +276,17 @@ void loop() {
 
   // LOW = CCW = ZOMBIE_UP = 0
   // BOSS ZOMBIE LIMIT SWITCHES
-  if (currentStateBoss_1 != previousStateBoss_1 && 
-      currentStateBoss_1 == LOW && 
-      zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) {
+  if (currentStateBoss_1 != previousStateBoss_1 && currentStateBoss_1 == LOW && zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) {
 
     displayText("boss π hit");
-    digitalWrite(dirPinBoss, HIGH);  
+    digitalWrite(dirPinBoss, HIGH);
     playerLives--;
     updateLives(playerLives);
     zombieState[BOSS_ZOMBIE] = ZOMBIE_DOWN;
     lowerZombie(BOSS_ZOMBIE);
   }
 
-  if (currentStateBoss_2 != previousStateBoss_2 && 
-      currentStateBoss_2 == LOW && 
-      zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) {
+  if (currentStateBoss_2 != previousStateBoss_2 && currentStateBoss_2 == LOW && zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) {
 
     displayText("boss * hit");
     digitalWrite(dirPinBoss, LOW);
@@ -302,9 +297,7 @@ void loop() {
   }
 
   // CAR ZOMBIE LIMIT SWITCHES
-  if (currentStateCar_1 != previousStateCar_1  && 
-      currentStateCar_1 == LOW && 
-      zombieState[CAR_ZOMBIE] == ZOMBIE_UP) {
+  if (currentStateCar_1 != previousStateCar_1 && currentStateCar_1 == LOW && zombieState[CAR_ZOMBIE] == ZOMBIE_UP) {
 
     displayText("car π hit");
     digitalWrite(dirPinCar, HIGH);
@@ -312,9 +305,7 @@ void loop() {
     lowerZombie(CAR_ZOMBIE);
   }
 
-  if (currentStateCar_2 != previousStateCar_2  && 
-      currentStateCar_2 == LOW && 
-      zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
+  if (currentStateCar_2 != previousStateCar_2 && currentStateCar_2 == LOW && zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
 
     displayText("car * hit");
     digitalWrite(dirPinCar, LOW);
