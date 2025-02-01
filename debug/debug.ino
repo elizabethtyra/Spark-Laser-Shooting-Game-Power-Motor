@@ -23,7 +23,8 @@ void setup() {
   // writeTopScoreToEEPROM(2, 888);
   // writeTopScoreToEEPROM(3, 777);
 
-
+  delayNum = 800;
+  playerLives = 3;
   pwm.begin();
   delay(1000);
   pwm.setOscillatorFrequency(27000000);
@@ -189,6 +190,11 @@ void loop() {
     timerStart = (stepPinBoss + dirPinBoss - limitSwitchCar_2);  //for tyra
     gameOver();
   }
+
+  // speed up stepper motors over time
+  if (timer_count < 300 && delayNum != 200) delayNum = 200;
+  else if (timer_count < 600 && delayNum != 400) delayNum = 400;
+  else if (timer_count < 900 && delayNum != 600) delayNum = 600;
 
   /****************RAISING STATIONARY ZOMBIES***************/
   for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
