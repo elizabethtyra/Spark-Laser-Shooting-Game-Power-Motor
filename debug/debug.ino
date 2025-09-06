@@ -170,20 +170,6 @@ void loop() {
   }
 
   if ((timer_count <= 0) || (playerLives == 0)) {
-
-    if (zombieState[0] == ZOMBIE_UP) {
-      displayText("zombie state 0 up");
-    } else if (zombieState[0] == ZOMBIE_DOWN) {
-      displayText("zombie state 0 DOWN");
-    }
-
-
-    for (int i = 0; i < NUM_ZOMBIES; i++) {
-      if (zombieState[i] == ZOMBIE_UP) {
-        lowerZombie(i);
-        zombieState[i] = ZOMBIE_DOWN;
-      }
-    }
     // while ('0')
     //   ;
     gameStart = false;
@@ -312,7 +298,6 @@ void loop() {
   }
 
   if (currentStateCar_2 != previousStateCar_2 && currentStateCar_2 == LOW && zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
-
     displayText("car * hit");
     digitalWrite(dirPinCar, HIGH);
     zombieState[CAR_ZOMBIE] = ZOMBIE_UP;

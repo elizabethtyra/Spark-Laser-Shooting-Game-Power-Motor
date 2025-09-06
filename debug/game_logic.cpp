@@ -5,7 +5,7 @@
 int playerScore = 0;
 int playerLives = 3;
 unsigned long lastHit[NUM_ZOMBIES] = { -1 * COOLDOWN };  // -1*COOLDOWN for inital game start
-unsigned long zombieState[NUM_ZOMBIES] = { 0 };
+unsigned long zombieState[NUM_ZOMBIES] = { 0, 0, 0, 0, 0, 1 };
 unsigned long startTime = 0;
 
 void (*resetFunc)(void) = 0;
@@ -78,27 +78,31 @@ void gameOver() {
     // LOW = CCW = ZOMBIE_UP = 0
     // BOSS ZOMBIE LIMIT SWITCHES
     //TODO: Have to add zombie flipping back
-    if (currentStateBoss_1 != previousStateBoss_1 && currentStateBoss_1 == LOW && !bossResetComplete) {
+    if (currentStateBoss_1 != previousStateBoss_1 && currentStateBoss_1 == LOW && !bossResetComplete && zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) {
       digitalWrite(dirPinBoss, HIGH);
+      zombieState[BOSS_ZOMBIE] = ZOMBIE_DOWN;
       lowerZombie(BOSS_ZOMBIE);
     }
 
-    if (currentStateBoss_2 != previousStateBoss_2 && currentStateBoss_2 == LOW && !bossResetComplete) {
+    if (currentStateBoss_2 != previousStateBoss_2 && currentStateBoss_2 == LOW && !bossResetComplete && zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) {
       digitalWrite(dirPinBoss, LOW);
       bossResetComplete = true;
       raiseZombie(BOSS_ZOMBIE);
+      zombieState[BOSS_ZOMBIE] = ZOMBIE_UP;
     }
 
     // CAR ZOMBIE LIMIT SWITCHES
-    if (currentStateCar_1 != previousStateCar_1 && currentStateCar_1 == LOW && !carResetComplete) {
-      digitalWrite(dirPinCar, HIGH);
+    if (currentStateCar_1 != previousStateCar_1 && currentStateCar_1 == LOW && !carResetComplete && zombieState[CAR_ZOMBIE] == ZOMBIE_UP) {
+      digitalWrite(dirPinCar, LOW);
       carResetComplete = true;
       lowerZombie(CAR_ZOMBIE);
+      zombieState[CAR_ZOMBIE] = ZOMBIE_DOWN;
     }
 
-    if (currentStateCar_2 != previousStateCar_2 && currentStateCar_2 == LOW && !carResetComplete) {
-      digitalWrite(dirPinCar, LOW);
+    if (currentStateCar_2 != previousStateCar_2 && currentStateCar_2 == LOW && !carResetComplete && zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
+      digitalWrite(dirPinCar, HIGH);
       raiseZombie(CAR_ZOMBIE);
+      zombieState[CAR_ZOMBIE] = ZOMBIE_UP;
     }
 
     // Update states
@@ -109,6 +113,20 @@ void gameOver() {
 
     if (bossResetComplete && carResetComplete) {
       break;
+    }
+  }
+
+  if (zombieState[0] == ZOMBIE_UP) {
+    // displayText("zombie state 0 up");
+  } else if (zombieState[0] == ZOMBIE_DOWN) {
+    // displayText("zombie state 0 DOWN");
+  }
+
+
+  for (int i = 0; i < NUM_ZOMBIES; i++) {
+    if (zombieState[i] == ZOMBIE_UP) {
+      lowerZombie(i);
+      zombieState[i] = ZOMBIE_DOWN;
     }
   }
 
