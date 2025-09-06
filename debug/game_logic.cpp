@@ -4,11 +4,11 @@
 
 int playerScore = 0;
 int playerLives = 3;
-unsigned long lastHit[NUM_ZOMBIES] = { -1*COOLDOWN }; // -1*COOLDOWN for inital game start
-unsigned long zombieState[NUM_ZOMBIES] = {0}; 
+unsigned long lastHit[NUM_ZOMBIES] = { -1 * COOLDOWN };  // -1*COOLDOWN for inital game start
+unsigned long zombieState[NUM_ZOMBIES] = { 0 };
 unsigned long startTime = 0;
 
-void(* resetFunc) (void) = 0;
+void (*resetFunc)(void) = 0;
 
 void gameOver() {
   // while (1);
@@ -49,6 +49,71 @@ void gameOver() {
   // Serial.println("Game Over");
   // Serial.print("Player Score: ");
   // Serial.print(playerScore);
+
+  bool bossResetComplete = false;
+  bool carResetComplete = false;
+
+  while (1) {
+
+    // Keep moving the zombies if not reset
+    if (!bossResetComplete) {
+      digitalWrite(stepPinBoss, HIGH);
+      delayMicroseconds(delayNum);
+      digitalWrite(stepPinBoss, LOW);
+    }
+
+    if (!carResetComplete) {
+      digitalWrite(stepPinCar, HIGH);
+      delayMicroseconds(delayNum);
+      digitalWrite(stepPinCar, LOW);
+    }
+
+
+    // Debouncing switches
+    currentStateBoss_1 = digitalRead(limitSwitchBoss_1);
+    currentStateBoss_2 = digitalRead(limitSwitchBoss_2);
+    currentStateCar_1 = digitalRead(limitSwitchCar_1);
+    currentStateCar_2 = digitalRead(limitSwitchCar_2);
+
+    // LOW = CCW = ZOMBIE_UP = 0
+    // BOSS ZOMBIE LIMIT SWITCHES
+    //TODO: Have to add zombie flipping back
+    if (currentStateBoss_1 != previousStateBoss_1 && currentStateBoss_1 == LOW && !bossResetComplete) {
+      digitalWrite(dirPinBoss, HIGH);
+      lowerZombie(BOSS_ZOMBIE);
+    }
+
+    if (currentStateBoss_2 != previousStateBoss_2 && currentStateBoss_2 == LOW && !bossResetComplete) {
+      digitalWrite(dirPinBoss, LOW);
+      bossResetComplete = true;
+      raiseZombie(BOSS_ZOMBIE);
+    }
+
+    // CAR ZOMBIE LIMIT SWITCHES
+    if (currentStateCar_1 != previousStateCar_1 && currentStateCar_1 == LOW && !carResetComplete) {
+      digitalWrite(dirPinCar, HIGH);
+      carResetComplete = true;
+      lowerZombie(CAR_ZOMBIE);
+    }
+
+    if (currentStateCar_2 != previousStateCar_2 && currentStateCar_2 == LOW && !carResetComplete) {
+      digitalWrite(dirPinCar, LOW);
+      raiseZombie(CAR_ZOMBIE);
+    }
+
+    // Update states
+    previousStateBoss_1 = currentStateBoss_1;
+    previousStateBoss_2 = currentStateBoss_2;
+    previousStateCar_1 = currentStateCar_1;
+    previousStateCar_2 = currentStateCar_2;
+
+    if (bossResetComplete && carResetComplete) {
+      break;
+    }
+  }
+
+  // Maybe make the zombies move for a bit longer to ensure they're not at the complete end
+
   resetFunc();
 }
 
@@ -65,7 +130,7 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool
       update_7seg(playerScore, userScore);
       zombieState[zombieNum] = ZOMBIE_DOWN;
       lowerZombie(zombieNum);
-    } 
+    }
   }
 
   // Process moving zombies by changing direction in addition to score
@@ -87,7 +152,6 @@ void processHit(const char* sensor, unsigned long* lastTime, int zombieNum, bool
     } else if (zombieNum == 5) {
       digitalWrite(dirPinCar, zombieState[zombieNum]);
     }
-    
   }
 }
 

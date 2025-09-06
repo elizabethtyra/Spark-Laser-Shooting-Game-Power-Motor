@@ -116,19 +116,19 @@ void setup() {
   pinMode(SENSORCAR_PIN, INPUT);
   pinMode(SENSORCAR_PIN2, INPUT);
 
-  // STEPPER1 SET setup
+  // STEPPER1 (BOSS) SET setup
   pinMode(limitSwitchBoss_1, INPUT_PULLUP);
   pinMode(limitSwitchBoss_2, INPUT_PULLUP);
   pinMode(stepPinBoss, OUTPUT);
   pinMode(dirPinBoss, OUTPUT);
   digitalWrite(dirPinBoss, LOW);  // starts counterclockwise, init zombie state = 0 = ZOMBIE_UP
 
-  // STEPPER2 SET setup
+  // STEPPER2 (CAR) SET setup
   pinMode(limitSwitchCar_1, INPUT_PULLUP);
   pinMode(limitSwitchCar_2, INPUT_PULLUP);
   pinMode(stepPinCar, OUTPUT);
   pinMode(dirPinCar, OUTPUT);
-  digitalWrite(dirPinCar, LOW);  // starts counterclockwise, init zombie state = 0 = ZOMBIE_UP
+  digitalWrite(dirPinCar, HIGH);  // starts clockwise, init zombie state = 0 = ZOMBIE_UP
 
   pinMode(START_PIN, INPUT_PULLUP);
 
@@ -306,7 +306,7 @@ void loop() {
   if (currentStateCar_1 != previousStateCar_1 && currentStateCar_1 == LOW && zombieState[CAR_ZOMBIE] == ZOMBIE_UP) {
 
     displayText("car π hit");
-    digitalWrite(dirPinCar, HIGH);
+    digitalWrite(dirPinCar, LOW); // Flipped because car starts CW (Boss starts CCW)
     zombieState[CAR_ZOMBIE] = ZOMBIE_DOWN;
     lowerZombie(CAR_ZOMBIE);
   }
@@ -314,7 +314,7 @@ void loop() {
   if (currentStateCar_2 != previousStateCar_2 && currentStateCar_2 == LOW && zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) {
 
     displayText("car * hit");
-    digitalWrite(dirPinCar, LOW);
+    digitalWrite(dirPinCar, HIGH);
     zombieState[CAR_ZOMBIE] = ZOMBIE_UP;
     raiseZombie(CAR_ZOMBIE);
   }
