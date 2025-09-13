@@ -44,7 +44,7 @@ extern volatile uint16_t timer_count;
 extern volatile int interrupt_counter;
 
 // globals for leaderboard
-extern int highScores[3];
+extern int highScores[4];
 extern uint8_t topScoreLowByte;
 extern uint8_t topScoreHighByte;
 

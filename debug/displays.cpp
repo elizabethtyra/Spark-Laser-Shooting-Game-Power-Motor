@@ -33,7 +33,7 @@ Adafruit_7segment topScore3 = Adafruit_7segment();    // current score
 volatile uint16_t timer_count = 0;
 volatile int interrupt_counter = 0;
 
-int highScores[3] = { 0 };
+int highScores[4] = { 0 };
 
 uint8_t topScoreLowByte;
 uint8_t topScoreHighByte;
@@ -64,7 +64,7 @@ void update_7seg(int score, Adafruit_7segment matrix) {
   matrix.writeDigitNum(1, (score / 100) % 10);
   matrix.writeDigitNum(3, (score / 10) % 10);
   matrix.writeDigitNum(4, score % 10);
-
+  
   matrix.writeDisplay();
 }
 
@@ -85,6 +85,11 @@ int readEEPROMTopScore(int position) {
     topScoreLowByte = EEPROM.read(4);
     topScoreHighByte = EEPROM.read(5);
   }
+  //read from EEPROM
+  else if (position == 4) {
+    topScoreLowByte = EEPROM.read(6);
+    topScoreHighByte = EEPROM.read(7);
+  }
 
   return topScoreLowByte + (topScoreHighByte << 8);
 }
@@ -104,6 +109,9 @@ void writeTopScoreToEEPROM(int position, int score) {
   } else if (position == 3) {
     EEPROM.put(4, topScoreLowByte);
     EEPROM.put(5, topScoreHighByte);
+  } else if (position == 4) {
+    EEPROM.put(6, topScoreLowByte);
+    EEPROM.put(7, topScoreHighByte);
   }
 }
 

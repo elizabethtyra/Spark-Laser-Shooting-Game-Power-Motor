@@ -44,7 +44,9 @@ void gameOver() {
   //   update_7seg(highScores[2], topScore3);
   // }
 
-  // update_7seg(0, userScore);
+  // ----------- TO TEST!!!! with rest of code ---------------
+  // highScores[3] = playerScore;
+  // writeTopScoreToEEPROM(4, highScores[3]);
 
   // Serial.println("Game Over");
   // Serial.print("Player Score: ");

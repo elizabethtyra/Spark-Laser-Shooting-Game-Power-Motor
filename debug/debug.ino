@@ -84,10 +84,13 @@ void setup() {
   highScores[0] = readEEPROMTopScore(1);
   highScores[1] = readEEPROMTopScore(2);
   highScores[2] = readEEPROMTopScore(3);
+  highScores[3] = readEEPROMTopScore(4);
   update_7seg(highScores[0], topScore1);
   update_7seg(highScores[1], topScore2);
   update_7seg(highScores[2], topScore3);
-  update_7seg(0, userScore);
+  update_7seg(highScores[3], userScore);
+
+  userScore.blinkRate(HT16K33_BLINK_1HZ);
 
   // writeTopScoreToEEPROM(3, 000);
   // highScores[2] = readEEPROMTopScore(3);
@@ -163,6 +166,8 @@ void loop() {
     currentResetState = digitalRead(START_PIN);
     if (currentResetState != previousResetState && currentResetState == LOW) {
       displayText("Reset Button Pressed");
+      userScore.blinkRate(HT16K33_BLINK_OFF);
+      update_7seg(0, userScore);
       gameStart = true;
       timerStart = stepPinCar;
     }
@@ -184,7 +189,7 @@ void loop() {
 
   /****************RAISING STATIONARY ZOMBIES***************/
   for (int i = 0; i < STATIONARY_ZOMBIES; i++) {
-    if (timer_count - lastHit[i] > COOLDOWN2 && zombieState[i] == ZOMBIE_DOWN) {
+    if (lastHit[i] - timer_count > COOLDOWN2 && zombieState[i] == ZOMBIE_DOWN) {
       raiseZombie(i);
       zombieState[i] = ZOMBIE_UP;
     }
@@ -197,40 +202,40 @@ void loop() {
 
   }
 
-  else if (timer_count - lastHit[1] > COOLDOWN && digitalRead(SENSOR1_PIN)) {
+  else if (lastHit[1] - timer_count > COOLDOWN && digitalRead(SENSOR1_PIN)) {
     printSensorState(SENSOR1_PIN);
   displayText("sensor 1 hit");
 
   }
 
-  else if (timer_count - lastHit[2] > COOLDOWN && digitalRead(SENSOR2_PIN)) {
+  else if (lastHit[2] - timer_count > COOLDOWN && digitalRead(SENSOR2_PIN)) {
     printSensorState(SENSOR2_PIN);
     displayText("sensor 2 hit");
 
   }
 
-  else if (timer_count - lastHit[3] > COOLDOWN && digitalRead(SENSOR3_PIN)) {
+  else if (lastHit[3] - timer_count > COOLDOWN && digitalRead(SENSOR3_PIN)) {
     displayText("sensor 3 hit");
 
     printSensorState(SENSOR3_PIN);
   }
 
-  else if ((timer_count - lastHit[5] > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORCAR_PIN))) {
+  else if ((lastHit[5] - timer_count > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORCAR_PIN))) {
     printSensorState(SENSORCAR_PIN);
     displayText("car π hit");
   }
 
-  else if ((timer_count - lastHit[5] > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORCAR_PIN2))) {
+  else if ((lastHit[5] - timer_count > MOVING_COOLDOWN) && (zombieState[CAR_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORCAR_PIN2))) {
     printSensorState(SENSORCAR_PIN2);
     displayText("car * hit");
   }
 
-  else if ((timer_count - lastHit[4] > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORBOSS_PIN))) {
+  else if ((lastHit[4] - timer_count > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_UP) && (digitalRead(SENSORBOSS_PIN))) {
     printSensorState(SENSORBOSS_PIN);
     displayText("boss π hit");
   }
 
-  else if ((timer_count - lastHit[4] > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORBOSS_PIN2))) {
+  else if ((lastHit[4] - timer_count > MOVING_COOLDOWN) && (zombieState[BOSS_ZOMBIE] == ZOMBIE_DOWN) && (digitalRead(SENSORBOSS_PIN2))) {
     printSensorState(SENSORBOSS_PIN2);
     displayText("boss * hit");
   }
